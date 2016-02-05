@@ -18,7 +18,7 @@ class Subject(models.Model):
     day = models.CharField('曜日', max_length=3, choices=WEEK_OF_DAY)
     absence = models.IntegerField('欠席回数', default=0)
 
-    def __str__(self):
+    def __unicode__(self):
         return self.subject_name
 
 
@@ -34,5 +34,5 @@ class Attendance(models.Model):
     number_of_times = models.IntegerField('授業回数')
     attendance = models.CharField('出席状況', max_length=7, choices=ATTENDANCE_STATUS)
 
-    def __str__(self):
+    def __unicode__(self):
         return str(self.subject.subject_name) + "(第" + str(self.number_of_times) + "回)"
