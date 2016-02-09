@@ -5,30 +5,31 @@
 {% block extrahead %}{% endblock extrahead %}
 
 {% block content %}
-    <div class="container">
-        <table class="table" border="true">
-            <thead>
-                <tr>
-                    <th>時限\曜日</th>
-                    {% for day in timetable.day_of_week %}
-                        <th>{{ day }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in timetable.table %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        {% for data in row %}
-                            <td>
-                                <p>{{ data.subject_name }}</p>
-                                <p>{{ data.absence }}</p>
-                            </td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+  <div class="container">
+    <table class="table" border="true">
+      <thead>
+      <tr>
+        <th>時限\曜日</th>
+        {% for day in timetable.day_of_week %}
+          <th>{{ day }}</th>
+        {% endfor %}
+      </tr>
+      </thead>
+      <tbody>
+      {% for row in timetable.table %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          {% for data in row %}
+            <td>
+              <p>{{ data.subject_name }}</p>
+              <p>{{ data.sum_of_absence }} / {{ data.sum_of_classes }}</p>
+              <p>遅刻 : {{ data.sum_of_late }}</p>
+            </td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
 {% endblock content %}

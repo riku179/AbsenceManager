@@ -1,18 +1,20 @@
-from cms.models import Subject
+from django.db.models import Count
+from cms.models import Subject, Attendance
 from cms.cfg import Config as Cfg
 
 
-class TimeTable:
+class CreateTimeTable:
     def __init__(self):
         self.day_of_week = [x[1] for x in Subject.DAY_OF_WEEK]
         self.periods = tuple(range(Cfg.MIN_PERIOD - 1, Cfg.MAX_PERIOD))
-        self.table = self.create_timetable()
+        self.table = self._create
 
-    def create_timetable(self):
+    def _create(self):
         """
 
         :rtype: TimeTable
         """
+
         timetable = []
         for i in self.periods:
             timetable.append([])
