@@ -20,11 +20,16 @@
         <tr>
           <td>{{ forloop.counter }}</td>
           {% for data in row %}
-            <td>
-              <p>{{ data.subject_name }}</p>
-              <p>{{ data.sum_of_absence }} / {{ data.sum_of_classes }}</p>
-              <p>遅刻 : {{ data.sum_of_late }}</p>
-            </td>
+            {% ifnotequal data "" %}
+              <td>
+                <p>{{ data.subject_name }}</p>
+                <p>{{ data.sum_of_absence }} / {{ data.sum_of_classes }}</p>
+                <p>遅刻 : {{ data.sum_of_late }}</p>
+                <p><a href="{% url 'cms.views.show_detail' data.id %}">detail</a></p>
+              </td>
+            {% else %}
+              <td/>
+            {% endifnotequal %}
           {% endfor %}
         </tr>
       {% endfor %}
