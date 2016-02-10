@@ -13,5 +13,5 @@ def index(request):
 def show_detail(request, subject_id):
     return render_to_response('cms/detail.html', {
         'subject': Subject.objects.get(id=subject_id),
-        'attendances': Attendance.objects.filter(subject=subject_id).order_by()
+        'attendances': Attendance.objects.filter(subject=subject_id).order_by('times')
     })

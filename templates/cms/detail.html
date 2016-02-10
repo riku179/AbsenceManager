@@ -5,4 +5,11 @@
 {% block content %}
 <h1>{{ subject.name }}</h1>
   <a href="{% url 'cms.views.index' %}">back</a>
+  <table border="true">
+  <tr>
+    {% for attendance in attendances %}
+    <th>{{ attendance.times }}</th>
+    {% endfor %}
+  </tr>
+  </table>
 {% endblock %}

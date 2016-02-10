@@ -30,7 +30,7 @@ class Subject(models.Model):
             .aggregate(count=Count('attendance'))['count']
 
     def __str__(self):
-        return self.subject_name
+        return self.name
 
 
 class Attendance(models.Model):
@@ -45,4 +45,4 @@ class Attendance(models.Model):
     absence = models.CharField('出席状況', max_length=7, choices=ATTENDANCE_STATUS)
 
     def __str__(self):
-        return str(self.subject.subject_name) + "(第" + str(self.number_of_times) + "回)"
+        return str(self.subject.name) + "(第" + str(self.times) + "回)"
