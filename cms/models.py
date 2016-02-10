@@ -11,7 +11,7 @@ class Subject(models.Model):
         ('Fri', '金'),
         ('Sat', '土')
     )
-    subject_name = models.CharField('科目名', max_length=50)
+    name = models.CharField('科目名', max_length=50)
     period = models.IntegerField('時限')
     day = models.CharField('曜日', max_length=3, choices=DAY_OF_WEEK)
 
@@ -41,7 +41,7 @@ class Attendance(models.Model):
         ('unknown', '不明')
     )
     subject = models.ForeignKey(Subject, verbose_name='科目', related_name='attendance')
-    number_of_times = models.IntegerField('授業回数')
+    times = models.IntegerField('授業回数')
     absence = models.CharField('出席状況', max_length=7, choices=ATTENDANCE_STATUS)
 
     def __str__(self):
