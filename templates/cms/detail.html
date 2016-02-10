@@ -3,13 +3,26 @@
 {% block title %}{{ subject.name }}{% endblock %}
 
 {% block content %}
-<h1>{{ subject.name }}</h1>
-  <a href="{% url 'cms.views.index' %}">back</a>
-  <table border="true">
-  <tr>
-    {% for attendance in attendances %}
-    <th>{{ attendance.times }}</th>
-    {% endfor %}
-  </tr>
-  </table>
+  <div class="container">
+    <h2>{{ subject.name }}</h2>
+    <a href="{% url 'cms.views.index' %}">back</a>
+    <table border="true">
+      <tr>
+        {% for attendance in attendances %}
+          <th><p>第{{ attendance.times }}回</p></th>
+        {% endfor %}
+      </tr>
+      <tr>
+        <form method="POST" action="{% url 'cms.views.update_attendance_status' subject.id %}" id="absence">
+          {{ attend_formset.management_form }}
+          {% for form in attend_formset %}
+              <td>
+                {{ form.absence }}
+              </td>
+          {% endfor %}
+        </form>
+      </tr>
+    </table>
+    <input type="submit" value="Submit" form="absence">
+  </div>
 {% endblock %}
