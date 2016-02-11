@@ -16,15 +16,36 @@ class Subject(models.Model):
     day = models.CharField('曜日', max_length=3, choices=DAY_OF_WEEK)
 
     def sum_of_classes(self):
+        """
+
+        :return: 総授業回数
+        """
         return Subject.objects.filter(id=self.id) \
             .aggregate(count=Count('attendance'))['count']
 
+    def sum_of_attend(self):
+        """
+
+        :return: 総出席数
+        """
+        return self.sum_of_late() + Subject.objects.filter(id=self.id) \
+            .filter(attendance__absence='attend') \
+            .aggregate(count=Count('attendance'))['count']
+
     def sum_of_absence(self):
+        """
+
+        :return: 総欠席数
+        """
         return Subject.objects.filter(id=self.id) \
             .filter(attendance__absence='absent') \
             .aggregate(count=Count('attendance'))['count']
 
     def sum_of_late(self):
+        """
+
+        :return: 総遅刻回数
+        """
         return Subject.objects.filter(id=self.id) \
             .filter(attendance__absence='late') \
             .aggregate(count=Count('attendance'))['count']

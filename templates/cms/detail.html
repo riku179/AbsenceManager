@@ -6,24 +6,28 @@
   <div class="container">
     <h2>{{ subject.name }}</h2>
     <a href="{% url 'cms.views.index' %}">back</a>
-    <table border="true">
-      <tr>
-        {% for attendance in attendances %}
-          <th><p>第{{ attendance.times }}回</p></th>
-        {% endfor %}
-      </tr>
-      <tr>
-        <form method="POST" action="{% url 'cms.views.show_detail' subject.id %}" id="absence">{% csrf_token %}
-          {{ attend_formset.management_form }}
-          {% for form in attend_formset %}
+    {% ifequal subject.sum_of_classes 0 %}
+      <h3>出席情報がありません</h3>
+    {% else %}
+      <table border="true">
+        <tr>
+          {% for attendance in attendances %}
+            <th><p>第{{ attendance.times }}回</p></th>
+          {% endfor %}
+        </tr>
+        <tr>
+          <form method="POST" action="{% url 'cms.views.show_detail' subject.id %}" id="absence">{% csrf_token %}
+            {{ attend_formset.management_form }}
+            {% for form in attend_formset %}
               {{ form.id }}
               <td>
                 {{ form.absence }}
               </td>
-          {% endfor %}
-        </form>
-      </tr>
-    </table>
+            {% endfor %}
+          </form>
+        </tr>
+      </table>
     <input type="submit" value="Submit" form="absence">
+    {% endifequal %}
   </div>
 {% endblock %}

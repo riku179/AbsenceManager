@@ -19,7 +19,7 @@ def show_detail(request, subject_id):
         if formset.is_valid():
             formset.save()
     else:
-        formset = AttendanceFormSet()
+        formset = AttendanceFormSet(queryset=Attendance.objects.filter(subject=subject_id).order_by('times'))
     return render_to_response('cms/detail.html', {
         'subject': Subject.objects.get(id=subject_id),
         'attendances': Attendance.objects.filter(subject=subject_id).order_by('times'),
