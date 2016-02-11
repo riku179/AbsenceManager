@@ -13,9 +13,10 @@
         {% endfor %}
       </tr>
       <tr>
-        <form method="POST" action="{% url 'cms.views.update_attendance_status' subject.id %}" id="absence">
+        <form method="POST" action="{% url 'cms.views.show_detail' subject.id %}" id="absence">{% csrf_token %}
           {{ attend_formset.management_form }}
           {% for form in attend_formset %}
+              {{ form.id }}
               <td>
                 {{ form.absence }}
               </td>
