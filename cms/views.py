@@ -3,13 +3,13 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.forms.models import modelformset_factory
 from cms.models import *
-from cms.timetable import CreateTimeTable
+from cms.controller import *
 from cms.forms import UploadTableForm
 
 
 def index(request):
     return render_to_response('cms/index.html', {
-        'timetable': CreateTimeTable(),
+        'timetable': TimeTable(),
         'upload': False,
         'uploadform': UploadTableForm(),
     }, context_instance=RequestContext(request))
@@ -19,15 +19,14 @@ def uploadtable(request):
     if request.method == 'POST':
         form = UploadTableForm(request.POST, request.FILES)
         if form.is_valid():
+            update_table(request.FILES['file'])
             return render_to_response('cms/index.html', {
-                'timetable': CreateTimeTable(),
+                'timetable': TimeTable(),
                 'upload': True,
                 'uploadform': UploadTableForm(),
             })
-    else:
-        pass
     return render_to_response('cms/index.html', {
-        'timetable': CreateTimeTable(),
+        'timetable': TimeTable(),
         'upload': 'False',
         'uploadform': UploadTableForm(),
     }, context_instance=RequestContext(request))
