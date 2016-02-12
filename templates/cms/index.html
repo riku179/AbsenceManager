@@ -36,6 +36,15 @@
       {% endfor %}
       </tbody>
     </table>
+    {% if upload %}
+      <p>ファイルが正常にアップロードされました</p>
+    {% endif %}
+    <form enctype="multipart/form-data" method="post" action="{% url 'cms.views.uploadtable' %}">{% csrf_token %}
+      <p>
+        時間割ファイルアップロード：{{ uploadform.file }}
+      </p>
+      <input type="submit" value="アップロード">
+    </form>
   </div>
 
 {% endblock content %}

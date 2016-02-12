@@ -4,4 +4,5 @@ from django.contrib import admin
 urlpatterns = patterns('cms.views',
                        url(r'^$', 'index'),
                        url(r'detail/(?P<subject_id>\d+)', 'show_detail'),
+                       url(r'^upload$', 'uploadtable'),
                        )
