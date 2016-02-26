@@ -21,8 +21,8 @@ class TimeTable:
         for i in self.periods:
             timetable.append([])
             for j in self.day_of_week:
-                if Subject.objects.filter(period=i + 1).filter(day=j):
-                    timetable[i].append(Subject.objects.filter(period=i + 1).filter(day=j)[0])
+                if Subject.objects.filter(period=i).filter(day=j):
+                    timetable[i].append(Subject.objects.filter(period=i).filter(day=j)[0])
                 else:
                     timetable[i].append('')
         return timetable
