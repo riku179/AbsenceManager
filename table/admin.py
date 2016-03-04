@@ -1,5 +1,5 @@
 from django.contrib import admin
-from cms.models import Subject, Attendance
+from table.models import Subject, Attendance
 
 
 # Register your models here.

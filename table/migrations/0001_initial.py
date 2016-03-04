@@ -36,6 +36,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='attendance',
             name='subject',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='attendance', to='cms.Subject', verbose_name='科目'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='attendance', to='table.Subject', verbose_name='科目'),
         ),
     ]

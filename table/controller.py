@@ -1,8 +1,8 @@
 import csv
 from io import TextIOWrapper
 
-from cms.cfg import Config as Cfg
-from cms.models import Subject
+from table.cfg import Config as Cfg
+from table.models import Subject
 
 
 class TimeTable:

@@ -1,4 +1,4 @@
-{% extends "cms/base.html" %}
+{% extends "table/base.html" %}
 
 {% block title %}出席管理{% endblock title %}
 
@@ -26,7 +26,7 @@
                 <p>{{ data.name }}</p>
                 <p>{{ data.sum_of_attend }} / {{ data.sum_of_classes }}</p>
                 <p>遅刻 : {{ data.sum_of_late }}</p>
-                <p><a href="{% url 'cms.views.show_detail' data.id %}">detail</a></p>
+                <p><a href="{% url 'table.views.show_detail' data.id %}">detail</a></p>
               </td>
             {% else %}
               <td/>
@@ -37,7 +37,7 @@
       </tbody>
     </table>
     {% block upload_status %}{% endblock %}
-    <form enctype="multipart/form-data" method="post" action="{% url 'cms.views.uploadtable' %}">{% csrf_token %}
+    <form enctype="multipart/form-data" method="post" action="{% url 'table.views.uploadtable' %}">{% csrf_token %}
       <p>
         時間割ファイルアップロード：{{ uploadform.file }}
       </p>

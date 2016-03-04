@@ -3,13 +3,13 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.forms.models import modelformset_factory
 
-from cms.models import *
-from cms.controller import *
-from cms.forms import UploadTableForm
+from table.models import *
+from table.controller import *
+from table.forms import UploadTableForm
 
 
 def index(request):
-    return render_to_response('cms/index.html', {
+    return render_to_response('table/index.html', {
         'timetable': TimeTable(),
         'uploadform': UploadTableForm(),
     }, context_instance=RequestContext(request))
@@ -28,8 +28,8 @@ def uploadtable(request):
                 update_table(request.FILES['file'].file)
             except UnicodeDecodeError:
                 contents['upload_error'] = 'UnicodeError'
-            return render_to_response('cms/index_upload.html', contents, context_instance=RequestContext(request))
-    return render_to_response('cms/index_upload.html', contents, context_instance=RequestContext(request))
+            return render_to_response('table/index_upload.html', contents, context_instance=RequestContext(request))
+    return render_to_response('table/index_upload.html', contents, context_instance=RequestContext(request))
 
 
 def show_detail(request, subject_id):
@@ -41,7 +41,7 @@ def show_detail(request, subject_id):
     else:
         formset = attendances(queryset=Attendance.objects \
                               .filter(subject=subject_id).order_by('times'))
-    return render_to_response('cms/detail.html', {
+    return render_to_response('table/detail.html', {
         'subject': Subject.objects.get(id=subject_id),
         'attendances': Attendance.objects.filter(subject=subject_id).order_by('times'),
         'attend_formset': formset,
