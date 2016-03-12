@@ -129,9 +129,9 @@ STATICFILES_DIRS = (
 )
 
 # Authentication settings
-LOGIN_URL = '/accounts/login'
+LOGIN_URL = '/accounts/login/'
 
-# settings for django-allauth
+# ======== settings for django-allauth ========= #
 AUTHENTICATION_BACKENDS = (
     # Needed to login by username in Django admin, regardless of `allauth`
     'django.contrib.auth.backends.ModelBackend',
@@ -140,3 +140,5 @@ AUTHENTICATION_BACKENDS = (
 )
 
 SITE_ID = 2
+ACCOUNT_LOGOUT_REDIRECT_URL = '/absencemanager'
+# =============================================== #

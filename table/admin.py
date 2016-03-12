@@ -5,7 +5,7 @@ from table.models import Subject, Attendance
 # Register your models here.
 
 class SubjectAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'period', 'day')
+    list_display = ('id', 'name', 'period', 'day', 'user')
     list_display_links = ('id', 'name')
 
 

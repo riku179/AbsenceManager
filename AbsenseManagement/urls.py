@@ -20,5 +20,6 @@ urlpatterns = patterns('',
                        url(r'^absencemanager/', include('table.urls')),
                        url(r'^auth/', include('authentication.urls')),
                        url(r'^admin/', include(admin.site.urls)),
-                       url(r'^accounts/', include('allauth.urls'))
+                       url(r'^accounts/', include('allauth.urls')),
+                       url(r'^', include('table.urls')),
                        )
