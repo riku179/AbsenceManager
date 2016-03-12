@@ -6,10 +6,11 @@ from table.models import Subject
 
 
 class TimeTable:
-    def __init__(self):
+    def __init__(self, user):
         self.day_of_week = [x[0] for x in Subject.DAY_OF_WEEK]
         self.periods = tuple(range(Cfg.MIN_PERIOD - 1, Cfg.MAX_PERIOD))
         self.table = self._create
+        self.user = user
 
     def _create(self):
         """
@@ -21,18 +22,18 @@ class TimeTable:
         for i in self.periods:
             timetable.append([])
             for j in self.day_of_week:
-                if Subject.objects.filter(period=i).filter(day=j):
-                    timetable[i].append(Subject.objects.filter(period=i).filter(day=j)[0])
+                if Subject.objects.filter(user=self.user).filter(period=i).filter(day=j):
+                    timetable[i].append(Subject.objects.filter(user=self.user).filter(period=i).filter(day=j)[0])
                 else:
                     timetable[i].append('')
         return timetable
 
 
-def update_table(file):
+def update_table(file, user):
     for (period, row) in enumerate(_csv_parser(file)):
         for (day, subject) in enumerate(row):
             if not subject == '':
-                Subject(name=subject, period=period, day=Subject.DAY_OF_WEEK[day][0]).save()
+                Subject(name=subject, period=period, day=Subject.DAY_OF_WEEK[day][0], user=user).save()
 
 
 def _csv_parser(requested_file):

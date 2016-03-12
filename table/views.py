@@ -2,22 +2,26 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.forms.models import modelformset_factory
+from django.contrib.auth.decorators import login_required
 
 from table.models import *
 from table.controller import *
 from table.forms import UploadTableForm
 
 
+@login_required
 def index(request):
     return render_to_response('table/index.html', {
-        'timetable': TimeTable(),
+        'timetable': TimeTable(request.user),
         'uploadform': UploadTableForm(),
+        'loggingin_user': request.user
     }, context_instance=RequestContext(request))
 
 
+@login_required
 def uploadtable(request):
     contents = {
-        'timetable': TimeTable(),
+        'timetable': TimeTable(user=request.user),
         'upload_error': 'NO',
         'uploadform': UploadTableForm(),
     }
@@ -25,13 +29,14 @@ def uploadtable(request):
         form = UploadTableForm(request.POST, request.FILES)
         if form.is_valid():
             try:
-                update_table(request.FILES['file'].file)
+                update_table(file=request.FILES['file'].file, user=request.user)
             except UnicodeDecodeError:
                 contents['upload_error'] = 'UnicodeError'
             return render_to_response('table/index_upload.html', contents, context_instance=RequestContext(request))
     return render_to_response('table/index_upload.html', contents, context_instance=RequestContext(request))
 
 
+@login_required
 def show_detail(request, subject_id):
     attendances = modelformset_factory(Attendance, extra=0, fields=('absence',))
     if request.method == 'POST':

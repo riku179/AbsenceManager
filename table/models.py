@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Count
+from django.contrib.auth.models import User
 
 
 class Subject(models.Model):
@@ -14,6 +15,7 @@ class Subject(models.Model):
     name = models.CharField('科目名', max_length=50)
     period = models.IntegerField('時限')
     day = models.CharField('曜日', max_length=3, choices=DAY_OF_WEEK)
+    user = models.ForeignKey(User, verbose_name='ユーザー', related_name='subject', null=True, blank=True)
 
     def sum_of_classes(self):
         """
