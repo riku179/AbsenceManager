@@ -130,6 +130,7 @@ STATICFILES_DIRS = (
 
 # Authentication settings
 LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/absencemanager'
 
 # ======== settings for django-allauth ========= #
 AUTHENTICATION_BACKENDS = (
