@@ -7,9 +7,14 @@
 
 {% block content %}
   <div class="container">
-  <h2>出欠管理</h2>
-  <p>You are logging in as : {% user_display user %}</p>
-  <input type="button" value="ログアウト" onclick="location.href='/accounts/logout'">
+    <h2>出欠管理</h2>
+    <p>You are logging in as : {% user_display user %}</p>
+    <input type="button" value="ログアウト" onclick="location.href='/accounts/logout'">
+    <form enctype="multipart/form-data" method="POST" action="{% url 'table.views.index' %}" >{% csrf_token %}
+      Twitter連携{{ userprofileform.watch_tl }}
+      <input type="hidden" name="user" value="{{ loggingin_user.id }}">
+      <input type="submit" value="反映">
+    </form>
     <table class="table" border="true">
       <thead>
       <tr>

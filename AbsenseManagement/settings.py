@@ -143,3 +143,4 @@ AUTHENTICATION_BACKENDS = (
 SITE_ID = 2
 ACCOUNT_LOGOUT_REDIRECT_URL = '/absencemanager'
 # =============================================== #
+# AUTH_USER_MODEL = 'authentication.User'

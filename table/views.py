@@ -7,14 +7,22 @@ from django.contrib.auth.decorators import login_required
 from table.models import *
 from table.controller import *
 from table.forms import UploadTableForm
+from authentication.models import UserProfile, UserProfileForm
 
 
 @login_required
 def index(request):
+    userprofile_form = UserProfile.objects.get(user_id=request.user.id)
+    if request.method == 'POST':
+        userprofile = UserProfileForm(request.POST, instance=userprofile_form)
+        if userprofile.is_valid():
+            userprofile.save()
+    #         TODO Twitterのアレコレを呼び出し
     return render_to_response('table/index.html', {
         'timetable': TimeTable(request.user),
         'uploadform': UploadTableForm(),
-        'loggingin_user': request.user
+        'loggingin_user': request.user,
+        'userprofileform': UserProfileForm(instance=userprofile_form)
     }, context_instance=RequestContext(request))
 
 
