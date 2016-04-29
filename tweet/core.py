@@ -1,5 +1,3 @@
-from threading import Thread, ThreadError, Event
+from twitter import *
+from allauth.socialaccount.models import SocialToken
 
-
-class Main:
-    pass

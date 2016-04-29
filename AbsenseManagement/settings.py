@@ -36,8 +36,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bootstrapform',
+    'celery_config',
     'table',
     'authentication',
+    'tweet',
     'django.contrib.sites',
     'allauth',
     'allauth.account',
@@ -144,3 +146,14 @@ SITE_ID = 2
 ACCOUNT_LOGOUT_REDIRECT_URL = '/absencemanager'
 # =============================================== #
 # AUTH_USER_MODEL = 'authentication.User'
+# ============ Celery settings ============
+# CELERY_ALWAYS_EAGER = False  # 開発時はEAGERで動かすと便利
+# CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+BROKER_URL = 'amqp://'  # BrokerにはとりあえずRedisを使っとく
+CELERY_RESULT_BACKEND = 'amqp://'
+#CELERY_TASK_SERIALIZER = 'json'
+#CELERY_RESULT_SERIALIZER = 'json'
+#CELERY_ACCEPT_CONTENT=['json']
+CELERY_TIMEZONE = 'Asia/Tokyo'
+CELERY_ENABLE_UTC = True
+# =========================================

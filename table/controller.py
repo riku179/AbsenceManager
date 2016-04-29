@@ -34,6 +34,7 @@ def update_table(file, user):
         for (day, subject) in enumerate(row):
             if not subject == '':
                 Subject(name=subject, period=period, day=Subject.DAY_OF_WEEK[day][0], user=user).save()
+                # TODO すでにアップロードしたあとに上書きすると、前の時間割とマージされてしまう
 
 
 def _csv_parser(requested_file):

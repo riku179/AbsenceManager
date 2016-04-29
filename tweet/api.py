@@ -1,4 +1,4 @@
 
 
-class ControlTwitter(Thread):
+class ControlTwitter:
     pass
