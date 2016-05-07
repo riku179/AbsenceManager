@@ -3,6 +3,7 @@ from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 
 from table.models import *
 from table.controller import *
@@ -12,7 +13,10 @@ from authentication.models import UserProfile, UserProfileForm
 
 @login_required
 def index(request):
-    userprofile_form = UserProfile.objects.get(user_id=request.user.id)
+    try:
+        userprofile_form = UserProfile.objects.get(user_id=request.user.id)
+    except ObjectDoesNotExist:
+        userprofile_form = UserProfile(user=request.user)
     if request.method == 'POST':
         userprofile = UserProfileForm(request.POST, instance=userprofile_form)
         if userprofile.is_valid():
