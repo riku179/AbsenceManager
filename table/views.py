@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
@@ -10,6 +11,7 @@ from table.controller import *
 from table.forms import UploadTableForm
 from authentication.models import UserProfile, UserProfileForm
 
+log = logging.getLogger(__name__)
 
 @login_required
 def index(request):
