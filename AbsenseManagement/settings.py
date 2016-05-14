@@ -157,3 +157,20 @@ CELERY_RESULT_BACKEND = 'amqp://'
 CELERY_TIMEZONE = 'Asia/Tokyo'
 CELERY_ENABLE_UTC = True
 # =========================================
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

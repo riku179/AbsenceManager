@@ -26,12 +26,10 @@ def main():
 
         if 'event' in msg:
             if msg['event'] == 'follow' and msg['target'] == user_id: # フォローされた
-                if followed_by_someone.delay(msg['source']):
-                    pass
+                followed_by_someone.delay(msg['source'])
 
             if msg['event'] == 'unfollow' and msg['target'] == user_id: # リムーブされた
-                if removed_by_someone.delay(msg['source']):
-                    pass
+                removed_by_someone.delay(msg['source'])
 
         if 'user' in msg:
             pass
