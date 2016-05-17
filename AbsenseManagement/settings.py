@@ -149,7 +149,7 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/absencemanager'
 # ============ Celery settings ============
 # CELERY_ALWAYS_EAGER = False  # 開発時はEAGERで動かすと便利
 # CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
-BROKER_URL = 'amqp://'  # BrokerにはとりあえずRedisを使っとく
+BROKER_URL = 'amqp://'
 CELERY_RESULT_BACKEND = 'amqp://'
 #CELERY_TASK_SERIALIZER = 'json'
 #CELERY_RESULT_SERIALIZER = 'json'

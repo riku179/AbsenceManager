@@ -8,5 +8,3 @@ log = logging.getLogger(__name__)
 class TweetConfig(AppConfig):
     name = 'tweet'
 
-    def ready(self):
-        pass

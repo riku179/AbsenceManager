@@ -1,17 +1,21 @@
-import re
+import sys, os, re, django, logging
+sys.path.append('/home/user/PycharmProjects/AbsenceManagement')
+os.environ['DJANGO_SETTINGS_MODULE'] = 'AbsenseManagement.settings'
+django.setup()
 from twitter import *
 from allauth.socialaccount.models import SocialToken
 from django.core.exceptions import ObjectDoesNotExist
-
 from tweet import tasks
 
-CONSUMER_KEY = csVH8LFOWjz4oIuhseDwnrY24
-CONSUMER_SECRET = Tx81hrPOGkAx1c8pyuIzPvTc8ZNFRL5nMbXGBjoeTmcnDMKS39
+log = logging.getLogger(__name__)
+
+CONSUMER_KEY = 'csVH8LFOWjz4oIuhseDwnrY24'
+CONSUMER_SECRET = 'Tx81hrPOGkAx1c8pyuIzPvTc8ZNFRL5nMbXGBjoeTmcnDMKS39'
 
 
 def main():
-    token = SocialToken.objects.get(account__user=3).token
-    secret = SocialToken.objects.get(account__user=3).token_secret
+    bot = SocialToken.objects.get(account__user=6)
+    token, secret = bot.token, bot.token_secret
     auth = OAuth(token, secret, CONSUMER_KEY, CONSUMER_SECRET)
     rest_api = Twitter(auth=auth)
     streaming_api = TwitterStream(auth=auth, domain="userstream.twitter.com")
@@ -24,16 +28,31 @@ def main():
     # followers_list = rest_api.followers.ids(screen_name=bot_screen_name) # followerリスト
 
     for msg in streaming_api.user():
+        print(msg)
         if 'friends' in msg: # 接続が確立された時最初に1度のみ受け取る
-            pass
+            log.warn('Connection established! user: ' + bot_screen_name)
 
         if 'event' in msg:
             if msg['event'] == 'follow' and msg['target'] == bot_id: # フォローされた
-                tasks.followed_by_someone.delay(msg['source'])
+                log.warn('Followed!')
+                try:
+                    tasks.followed_by_someone.delay(user_id=msg['source'])
+                except Exception as err:
+                    log.error('[Error]', err)
 
             if msg['event'] == 'unfollow' and msg['target'] == bot_id: # リムーブされた
-                tasks.removed_by_someone.delay(msg['source'])
+                log.warn('Removed!')
+                try:
+                    tasks.removed_by_someone.delay(user_id=msg['source'])
+                except Exception as err:
+                    log.error('[Error]', err)
 
         if 'in_reply_to_user_id' in msg and msg['in_reply_to_user_id'] == bot_id and pattern.match(msg['text']):
-            tasks.update_attendance.delay(msg['user']['id'], pattern.match(msg['text']).group(1))
+            log.warn('Accepted reply!')
+            try:
+                tasks.update_attendance.delay(user_id=msg['user']['id'], attendance_pattern=pattern.match(msg['text']).group(1))
+            except Exception as err:
+                log.error('[Error]', err)
 
+if __name__ == '__main__':
+    main()
