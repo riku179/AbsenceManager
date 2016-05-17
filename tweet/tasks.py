@@ -43,10 +43,15 @@ def update_attendance(user_id, attendance_pattern):
         target_user_profile = UserProfile.objects.get(user=target_user.user)
     except ObjectDoesNotExist:
         log.warn('unknown user tried to update attendance')
+
     subjects = Subject.objects.filter(user=target_user.user) \
         .filter(day=Subject.DAY_OF_WEEK[today.weekday()][0]) \
         .order_by('period')
-    if target_user_profile.watch_tl == True and len(attendance_pattern) == subjects.count():
+
+    if target_user_profile.watch_tl == False or len(attendance_pattern) != subjects.count():
+        log.warn('Failed to update attendance info.')
+        return
+    else:
         for (a, subject) in (attendance_pattern, subjects):
             if a == 'o': # 出席
                 Attendance(subject=subject, times=subject.sum_of_classes+1, absence=Attendance.ATTENDANCE_STATUS[0][0])
@@ -58,6 +63,3 @@ def update_attendance(user_id, attendance_pattern):
                 Attendance(subject=subject, times=subject.sum_of_classes+1, absence=Attendance.ATTENDANCE_STATUS[3][0])
             elif a == 'c': # 休講
                 pass
-    else:
-        log.warn('Failed to update attendance info.')
-        return
