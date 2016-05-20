@@ -33,7 +33,7 @@ class TestUpdateAttendance(TestCase):
         """
         正常系(月曜日)
         """
-        update_attendance(user_id=self.UID, attendance_pattern='oxlu', 0)
+        update_attendance(user_id=self.UID, attendance_pattern='oxlu', today=0)
         self.assertEqual(Attendance.objects.get(subject=self.sub1, times=1).absence, 'attend')
         self.assertEqual(Attendance.objects.get(subject=self.sub2, times=1).absence, 'absent')
         self.assertEqual(Attendance.objects.get(subject=self.sub3, times=1).absence, 'late')
