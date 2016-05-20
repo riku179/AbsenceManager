@@ -32,7 +32,9 @@ class TestUpdateAttendance(TestCase):
         sub1.save(); sub2.save(); sub3.save(); sub4.save(); sub5.save(); sub6.save(); sub7.save(); sub8.save(); sub9.save()
 
     def test_ng_user_ok_pattern(self):
-        pass
+        self.attend_mondey()
+        update_attendance(user_id=1919, attendance_pattern='oxlu', today=0)
+        self.assertEqual(Attendance.objects.get(subject=self.sub1, times=1).absence, ObjectDoesNotExist)
 
     def test_ok_usr_ok_pattern(self):
         """
