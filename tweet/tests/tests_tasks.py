@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from allauth.socialaccount.models import SocialAccount
+from django.core.exceptions import ObjectDoesNotExist
 from datetime import date
 
 from tweet.tasks import update_attendance
@@ -32,7 +33,9 @@ class TestUpdateAttendance(TestCase):
         """
         正常系(月曜日)
         """
-        update_attendance(user_id=self.UID, attendance_pattern='oxlu')
+        update_attendance(user_id=self.UID, attendance_pattern='oxlu', 0)
         self.assertEqual(Attendance.objects.get(subject=self.sub1, times=1).absence, 'attend')
-        self.assertEqual(Attendance.objects.get(subject=self.sub1))
+        self.assertEqual(Attendance.objects.get(subject=self.sub2, times=1).absence, 'absent')
+        self.assertEqual(Attendance.objects.get(subject=self.sub3, times=1).absence, 'late')
+        self.assertEqual(Attendance.objects.get(subject=self.sub4, times=1).absence, ObjectDoesNotExist)
 

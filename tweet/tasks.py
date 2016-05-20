@@ -1,5 +1,4 @@
 import logging
-from datetime import date
 from celery import shared_task
 from twitter import *
 from allauth.socialaccount.models import SocialAccount
@@ -10,7 +9,6 @@ from authentication.models import UserProfile
 from table.models import Attendance, Subject
 
 log = logging.getLogger(__name__)
-today = date.today()
 
 
 @shared_task
@@ -37,7 +35,7 @@ def removed_by_someone(user_id):
         log.warn('unknown user removed me')
 
 @shared_task
-def update_attendance(user_id, attendance_pattern):
+def update_attendance(user_id, attendance_pattern, today):
     try:
         target_user = SocialAccount.objects.get(uid=user_id)
         target_user_profile = UserProfile.objects.get(user=target_user.user)
@@ -45,7 +43,7 @@ def update_attendance(user_id, attendance_pattern):
         log.warn('unknown user tried to update attendance')
 
     subjects = Subject.objects.filter(user=target_user.user) \
-        .filter(day=Subject.DAY_OF_WEEK[today.weekday()][0]) \
+        .filter(day=Subject.DAY_OF_WEEK[today][-1]) \
         .order_by('period')
 
     if target_user_profile.watch_tl == False or len(attendance_pattern) != subjects.count():

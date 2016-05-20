@@ -2,6 +2,7 @@ import sys, os, re, django, logging
 sys.path.append('/home/user/PycharmProjects/AbsenceManagement')
 os.environ['DJANGO_SETTINGS_MODULE'] = 'AbsenseManagement.settings'
 django.setup()
+from datetime import date
 from twitter import *
 from allauth.socialaccount.models import SocialToken
 from django.core.exceptions import ObjectDoesNotExist
@@ -50,7 +51,7 @@ def main():
         if 'in_reply_to_user_id' in msg and msg['in_reply_to_user_id'] == bot_id and pattern.match(msg['text']):
             log.warn('Accepted reply!')
             try:
-                tasks.update_attendance.delay(user_id=msg['user']['id'], attendance_pattern=pattern.match(msg['text']).group(1))
+                tasks.update_attendance.delay(user_id=msg['user']['id'], attendance_pattern=pattern.match(msg['text']).group(1), today=date.today().weekday())
             except Exception as err:
                 log.error('[Error]', err)
 
