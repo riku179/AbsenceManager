@@ -40,7 +40,7 @@ def update_attendance(user_id, attendance_pattern, today):
         target_user = SocialAccount.objects.get(uid=user_id)
         target_user_profile = UserProfile.objects.get(user=target_user.user)
     except ObjectDoesNotExist:
-        log.warn('unknown user tried to update attendance')
+        log.warn('Unknown user tried to update attendance')
 
     subjects = Subject.objects.filter(user=target_user.user) \
         .filter(day=Subject.DAY_OF_WEEK[today][-1]) \
