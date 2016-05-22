@@ -26,7 +26,6 @@ def main():
     bot_id = bot_account_verify['id'] #  アカウントの情報を取得する。skip_statusは最新のpostを引っ張ってくるのを無効化
 
     pattern = re.compile(r'^@' + bot_screen_name + r'\s(all|[oxluc]{1,7})$')
-    # followers_list = rest_api.followers.ids(screen_name=bot_screen_name) # followerリスト
 
     for msg in streaming_api.user():
         print(msg)
@@ -35,25 +34,26 @@ def main():
 
         if 'event' in msg:
             if msg['event'] == 'follow' and msg['target'] == bot_id: # フォローされた
-                log.warn('Followed!')
                 try:
                     tasks.followed_by_someone.delay(user_id=msg['source'])
                 except Exception as err:
                     log.error('[Error]', err)
 
             if msg['event'] == 'unfollow' and msg['target'] == bot_id: # リムーブされた
-                log.warn('Removed!')
                 try:
                     tasks.removed_by_someone.delay(user_id=msg['source'])
                 except Exception as err:
                     log.error('[Error]', err)
 
         if 'in_reply_to_user_id' in msg and msg['in_reply_to_user_id'] == bot_id and pattern.match(msg['text']):
-            log.warn('Accepted reply!')
             try:
                 tasks.update_attendance.delay(user_id=msg['user']['id'], attendance_pattern=pattern.match(msg['text']).group(1), today=date.today().weekday())
+            except tasks.UnexpectedRequestError:
+                pass
             except Exception as err:
                 log.error('[Error]', err)
+            else:
+                rest_api.statuses.update(status=tasks.create_reply_text(user_id=msg['user']['id']))
 
 if __name__ == '__main__':
     main()

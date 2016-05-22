@@ -18,9 +18,9 @@ def followed_by_someone(user_id):
         source_user_profile = UserProfile.objects.get(user=source_user)
         source_user_profile.watch_tl = True
         source_user_profile.save()
-        log.warn('user: ' + user_id + ' followd')
+        log.warn('User: ' + user_id + ' followd')
     except ObjectDoesNotExist:
-        log.warn('unknown user followed me')
+        log.warn('Unknown user followed me')
 
 
 @shared_task
@@ -30,26 +30,21 @@ def removed_by_someone(user_id):
         source_user_profile = UserProfile.objects.get(user=source_user)
         source_user_profile.watch_tl = False
         source_user_profile.save
-        log.warn('user:' + user_id + ' removed')
+        log.warn('User:' + user_id + ' removed')
     except ObjectDoesNotExist:
-        log.warn('unknown user removed me')
+        log.warn('Unknown user removed me')
 
 @shared_task
 def update_attendance(user_id, attendance_pattern, today):
-    try:
-        target_user = SocialAccount.objects.get(uid=user_id)
-        target_user_profile = UserProfile.objects.get(user=target_user.user)
-    except ObjectDoesNotExist:
-        log.warn('Unknown user tried to update attendance')
-        return
+    target_user, target_user_profile = _get_user_and_profile(user_id=user_id)
 
     subjects = Subject.objects.filter(user=target_user.user) \
         .filter(day=Subject.DAY_OF_WEEK[today][0]) \
         .order_by('period')
 
     if target_user_profile.watch_tl == False or len(attendance_pattern) != subjects.count():
-        log.warn('Failed to update attendance info.')
-        return
+        log.error('"watch_tl" is False or length of pattern is incorrect.')
+        raise UnexpectedRequestError
     else:
         for (a, subject) in zip(attendance_pattern, subjects):
             if a == 'o': # 出席
@@ -62,3 +57,25 @@ def update_attendance(user_id, attendance_pattern, today):
                 Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=Attendance.ATTENDANCE_STATUS[3][0]).save()
             elif a == 'c': # 休講
                 pass
+
+
+def _get_user_and_profile(user_id):
+    try:
+        target_user = SocialAccount.objects.get(uid=user_id)
+        target_user_profile = UserProfile.objects.get(user=target_user.user)
+    except ObjectDoesNotExist:
+        raise
+    return target_user, target_user_profile
+
+
+def get_attendance_text(user_id):
+    target_user, target_user_profile = _get_user_and_profile(user_id=user_id)
+    subjects = Subject.objects.filter(user=target_user.user) \
+        .filter(day=Subject.DAY_OF_WEEK[today][0]) \
+        .order_by('period')
+
+    for subject in subjects:
+
+
+class UnexpectedRequestError(Exception):
+    pass
