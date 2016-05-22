@@ -41,23 +41,24 @@ def update_attendance(user_id, attendance_pattern, today):
         target_user_profile = UserProfile.objects.get(user=target_user.user)
     except ObjectDoesNotExist:
         log.warn('Unknown user tried to update attendance')
+        return
 
     subjects = Subject.objects.filter(user=target_user.user) \
-        .filter(day=Subject.DAY_OF_WEEK[today][-1]) \
+        .filter(day=Subject.DAY_OF_WEEK[today][0]) \
         .order_by('period')
 
     if target_user_profile.watch_tl == False or len(attendance_pattern) != subjects.count():
         log.warn('Failed to update attendance info.')
         return
     else:
-        for (a, subject) in (attendance_pattern, subjects):
+        for (a, subject) in zip(attendance_pattern, subjects):
             if a == 'o': # 出席
-                Attendance(subject=subject, times=subject.sum_of_classes+1, absence=Attendance.ATTENDANCE_STATUS[0][0])
+                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=Attendance.ATTENDANCE_STATUS[0][0]).save()
             elif a == 'x': # 欠席
-                Attendance(subject=subject, times=subject.sum_of_classes+1, absence=Attendance.ATTENDANCE_STATUS[1][0])
+                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=Attendance.ATTENDANCE_STATUS[1][0]).save()
             elif a == 'l': # 遅刻
-                Attendance(subject=subject, times=subject.sum_of_classes+1, absence=Attendance.ATTENDANCE_STATUS[2][0])
+                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=Attendance.ATTENDANCE_STATUS[2][0]).save()
             elif a == 'u': # 不明
-                Attendance(subject=subject, times=subject.sum_of_classes+1, absence=Attendance.ATTENDANCE_STATUS[3][0])
+                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=Attendance.ATTENDANCE_STATUS[3][0]).save()
             elif a == 'c': # 休講
                 pass
