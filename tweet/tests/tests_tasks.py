@@ -63,3 +63,10 @@ class TestUpdateAttendance(TestCase):
         with self.assertRaises(ObjectDoesNotExist):
             Attendance.objects.get(subject=self.sub1, times=1).absence
 
+    def test_ng_user_ng_pattern(self):
+        self.prepare()
+        self.prepare_subjects()
+        update_attendance(user_id=1919, attendance_pattern='loxxo', today=0)
+        with self.assertRaises(ObjectDoesNotExist):
+            Attendance.objects.get(subject=self.sub1, times=1).absence
+
