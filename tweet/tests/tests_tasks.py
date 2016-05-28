@@ -40,33 +40,33 @@ class TestUpdateAttendance(TestCase):
         """
         self.prepare()
         self.prepare_subjects()
-        update_attendance(user_id=self.UID, attendance_pattern='oxlc', today=0)
+        update_attendance(user_id=self.UID, attendances='oxlc', today=0)
         self.assertEqual(Attendance.objects.get(subject=self.sub1, times=1).absence, 'attend')
         self.assertEqual(Attendance.objects.get(subject=self.sub2, times=1).absence, 'absent')
         self.assertEqual(Attendance.objects.get(subject=self.sub3, times=1).absence, 'late')
         with self.assertRaises(ObjectDoesNotExist):
-            Attendance.objects.get(subject=self.sub4, times=1).absence
+            var = Attendance.objects.get(subject=self.sub4, times=1).absence
 
 
     def test_ng_user_ok_pattern(self):
         self.prepare()
         self.prepare_subjects()
-        update_attendance(user_id=1919, attendance_pattern='oxlc', today=0)
+        update_attendance(user_id=1919, attendances='oxlc', today=0)
         with self.assertRaises(ObjectDoesNotExist):
-            Attendance.objects.get(subject=self.sub1, times=1).absence
+            var = Attendance.objects.get(subject=self.sub1, times=1).absence
 
 
     def test_ok_user_ng_pattern(self):
         self.prepare()
         self.prepare_subjects()
-        update_attendance(user_id=self.UID, attendance_pattern='loxxo', today=0)
+        update_attendance(user_id=self.UID, attendances='loxxo', today=0)
         with self.assertRaises(ObjectDoesNotExist):
-            Attendance.objects.get(subject=self.sub1, times=1).absence
+            var = Attendance.objects.get(subject=self.sub1, times=1).absence
 
     def test_ng_user_ng_pattern(self):
         self.prepare()
         self.prepare_subjects()
-        update_attendance(user_id=1919, attendance_pattern='loxxo', today=0)
+        update_attendance(user_id=1919, attendances='loxxo', today=0)
         with self.assertRaises(ObjectDoesNotExist):
-            Attendance.objects.get(subject=self.sub1, times=1).absence
+            var = Attendance.objects.get(subject=self.sub1, times=1).absence
 

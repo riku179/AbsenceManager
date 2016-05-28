@@ -55,14 +55,16 @@ class Subject(models.Model):
     def __str__(self):
         return self.name
 
+ATTENDANCE_STATUS = (
+    ('attend', '出席'),
+    ('absent', '欠席'),
+    ('late', '遅刻'),
+    ('unknown', '不明'),
+    ('cancel', '休講')
+)
 
 class Attendance(models.Model):
-    ATTENDANCE_STATUS = (
-        ('attend', '出席'),
-        ('absent', '欠席'),
-        ('late', '遅刻'),
-        ('unknown', '不明')
-    )
+
     subject = models.ForeignKey(Subject, verbose_name='科目', related_name='attendance')
     times = models.IntegerField('授業回数')
     absence = models.CharField('出席状況', max_length=7, choices=ATTENDANCE_STATUS)

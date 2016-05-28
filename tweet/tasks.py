@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 
 from authentication.models import UserProfile
-from table.models import Attendance, Subject
+from table.models import Attendance, Subject, ATTENDANCE_STATUS
 
 log = logging.getLogger(__name__)
 
@@ -29,53 +29,63 @@ def removed_by_someone(user_id):
         source_user = SocialAccount.objects.get(uid=user_id)
         source_user_profile = UserProfile.objects.get(user=source_user)
         source_user_profile.watch_tl = False
-        source_user_profile.save
+        source_user_profile.save()
         log.warn('User:' + user_id + ' removed')
     except ObjectDoesNotExist:
         log.warn('Unknown user removed me')
 
 @shared_task
-def update_attendance(user_id, attendance_pattern, today):
-    target_user, target_user_profile = _get_user_and_profile(user_id=user_id)
+def update_attendance(user_id, attendances, today):
+    target_user, target_user_profile = get_user_and_profile(user_id=user_id)
 
     subjects = Subject.objects.filter(user=target_user.user) \
         .filter(day=Subject.DAY_OF_WEEK[today][0]) \
         .order_by('period')
 
-    if target_user_profile.watch_tl == False or len(attendance_pattern) != subjects.count():
-        log.error('"watch_tl" is False or length of pattern is incorrect.')
-        raise UnexpectedRequestError
+    if not target_user_profile.watch_tl or len(attendances) != subjects.count():
+        raise AttributeError
     else:
-        for (a, subject) in zip(attendance_pattern, subjects):
-            if a == 'o': # 出席
-                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=Attendance.ATTENDANCE_STATUS[0][0]).save()
-            elif a == 'x': # 欠席
-                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=Attendance.ATTENDANCE_STATUS[1][0]).save()
-            elif a == 'l': # 遅刻
-                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=Attendance.ATTENDANCE_STATUS[2][0]).save()
-            elif a == 'u': # 不明
-                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=Attendance.ATTENDANCE_STATUS[3][0]).save()
-            elif a == 'c': # 休講
+        for (a, subject) in zip(attendances, subjects):
+            if a == ATTENDANCE_STATUS[0]:  # 出席
+                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=ATTENDANCE_STATUS[0]).save()
+            elif a == ATTENDANCE_STATUS[1]:  # 欠席
+                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=ATTENDANCE_STATUS[1]).save()
+            elif a == ATTENDANCE_STATUS[2]:  # 遅刻
+                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=ATTENDANCE_STATUS[2]).save()
+            elif a == ATTENDANCE_STATUS[3]:  # 不明
+                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=ATTENDANCE_STATUS[3]).save()
+            elif a == ATTENDANCE_STATUS[4]:  # 休講
                 pass
 
 
-def _get_user_and_profile(user_id):
+@shared_task
+def reply_attendance(user_id, attendances, api_ctrl):
+    api_ctrl.statuses.update(status=get_tweet_context(user_id=user_id, attendances=attendances), attendances=attendances)
+
+
+def get_user_and_profile(user_id):
+    """
+
+    :param user_id: twitter ID
+    :return: User object, UserProofile object
+    """
     try:
         target_user = SocialAccount.objects.get(uid=user_id)
         target_user_profile = UserProfile.objects.get(user=target_user.user)
     except ObjectDoesNotExist:
-        raise
+        log.error('user:{user_id} does not exist in DB.')
     return target_user, target_user_profile
 
 
-def get_attendance_text(user_id):
-    target_user, target_user_profile = _get_user_and_profile(user_id=user_id)
+def get_tweet_context(user_id, attendances):
+    target_user, target_user_profile = get_user_and_profile(user_id=user_id)
     subjects = Subject.objects.filter(user=target_user.user) \
         .filter(day=Subject.DAY_OF_WEEK[today][0]) \
         .order_by('period')
 
+    context = ''
     for subject in subjects:
-
-
-class UnexpectedRequestError(Exception):
-    pass
+        line = "{period}限 {subject_name} : {attendance}"\
+            .format(period=subject.period, subject_subject_name=subject.name, attendance=ATTENDANCE_STATUS[period][0])
+        context += line
+    return context

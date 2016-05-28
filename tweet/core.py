@@ -7,6 +7,7 @@ from twitter import *
 from allauth.socialaccount.models import SocialToken
 from django.core.exceptions import ObjectDoesNotExist
 from tweet import tasks
+from table.models import ATTENDANCE_STATUS
 
 log = logging.getLogger(__name__)
 
@@ -23,37 +24,68 @@ def main():
 
     bot_account_verify = rest_api.account.verify_credentials(skip_status='true')
     bot_screen_name = bot_account_verify['screen_name']
-    bot_id = bot_account_verify['id'] #  アカウントの情報を取得する。skip_statusは最新のpostを引っ張ってくるのを無効化
+    bot_id = bot_account_verify['id']  #  アカウントの情報を取得する。skip_statusは最新のpostを引っ張ってくるのを無効化
 
     pattern = re.compile(r'^@' + bot_screen_name + r'\s(all|[oxluc]{1,7})$')
 
     for msg in streaming_api.user():
         print(msg)
-        if 'friends' in msg: # 接続が確立された時最初に1度のみ受け取る
+        if 'friends' in msg:  # 接続が確立された時最初に1度のみ受け取る
             log.warn('Connection established! user: ' + bot_screen_name)
 
         if 'event' in msg:
-            if msg['event'] == 'follow' and msg['target'] == bot_id: # フォローされた
+            if msg['event'] == 'follow' and msg['target'] == bot_id:  # フォローされた
                 try:
                     tasks.followed_by_someone.delay(user_id=msg['source'])
                 except Exception as err:
                     log.error('[Error]', err)
 
-            if msg['event'] == 'unfollow' and msg['target'] == bot_id: # リムーブされた
+            if msg['event'] == 'unfollow' and msg['target'] == bot_id:  # リムーブされた
                 try:
                     tasks.removed_by_someone.delay(user_id=msg['source'])
                 except Exception as err:
-                    log.error('[Error]', err)
+                    log.error("Unknown error occurred: {e}".format(e=err))
 
-        if 'in_reply_to_user_id' in msg and msg['in_reply_to_user_id'] == bot_id and pattern.match(msg['text']):
+        matched_pattern = pattern.match(msg['text']).group(1)
+        if 'in_reply_to_user_id' in msg and msg['in_reply_to_user_id'] == bot_id and matched_pattern:
+            attendances = pattern_translate(matched_pattern)
             try:
-                tasks.update_attendance.delay(user_id=msg['user']['id'], attendance_pattern=pattern.match(msg['text']).group(1), today=date.today().weekday())
-            except tasks.UnexpectedRequestError:
-                pass
+                tasks.update_attendance. delay(
+                    user_id=msg['user']['id'],
+                    attendances=attendances,
+                    today=date.today().weekday(),
+                    api_ctrl=rest_api
+                )
+            except AttributeError:
+                log.error('user:{user_id} failed update attendance. Option is disabled or pattern is too long.'
+                          .format(user_id=msg['user']['id']))
             except Exception as err:
-                log.error('[Error]', err)
+                log.error("Unknown error occurred: {e}".format(e=err))
             else:
-                rest_api.statuses.update(status=tasks.create_reply_text(user_id=msg['user']['id']))
+                tasks.reply_attendance.delay(user_id=msg['user']['id'], attendances=attendances, api_ctrl=rest_api)
+
+
+def pattern_translate(pattern):
+    """
+
+    :param pattern: pattern strings ex) loxoou
+    :return: list of attendances
+    """
+    attendance = []
+    for c in pattern:
+        if c == 'o':
+            attendance.append(ATTENDANCE_STATUS[0])
+        elif c == 'x':
+            attendance.append(ATTENDANCE_STATUS[1])
+        elif c == 'l':
+            attendance.append(ATTENDANCE_STATUS[2])
+        elif c == 'u':
+            attendance.append(ATTENDANCE_STATUS[3])
+        elif c == 'c':
+            attendance.append(ATTENDANCE_STATUS[4])
+
+    return attendances
+
 
 if __name__ == '__main__':
     main()
