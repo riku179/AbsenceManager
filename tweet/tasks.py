@@ -5,7 +5,6 @@ from allauth.socialaccount.models import SocialAccount
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 
-from tweet.core import CONSUMER_KEY, CONSUMER_SECRET
 from authentication.models import UserProfile
 from table.models import Attendance, Subject, ATTENDANCE_STATUS
 
@@ -60,9 +59,9 @@ def update_attendance(user_id, attendances, today):
 
 
 @shared_task
-def reply_attendance(user_id, attendances):
+def reply_attendance(user_id, attendances, keys):
     target_user = get_user_and_profile(user_id=user_id, getprofile=False)
-    auth = OAuth(target_user.token, target_user.token_secret, CONSUMER_KEY, CONSUMER_SECRET)
+    auth = OAuth(token=target_user.token, token_secret=target_user.token_secret, consumer_key=keys[0], consumer_secret=keys[1])
     rest_api = Twitter(auth=auth)
     rest_api.statuses.update(status=get_tweet_context(user_id=user_id, attendances=attendances), attendances=attendances)
 

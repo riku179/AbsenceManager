@@ -17,8 +17,7 @@ CONSUMER_SECRET = 'Tx81hrPOGkAx1c8pyuIzPvTc8ZNFRL5nMbXGBjoeTmcnDMKS39'
 
 def main():
     bot = SocialToken.objects.get(account__user=6)
-    token, secret = bot.token, bot.token_secret
-    auth = OAuth(token, secret, CONSUMER_KEY, CONSUMER_SECRET)
+    auth = OAuth(token=bot.token, token_secret=bot.token_secret, consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET)
     rest_api = Twitter(auth=auth)
     streaming_api = TwitterStream(auth=auth, domain="userstream.twitter.com")
 
@@ -63,7 +62,7 @@ def main():
             except Exception as err:
                 log.error("Unknown error occurred: {e}".format(e=err))
             else:
-                reply_attendance.delay(user_id=msg['user']['id'], attendances=attendances)
+                reply_attendance.delay(user_id=msg['user']['id'], attendances=attendances, keys=(CONSUMER_KEY, CONSUMER_SECRET))
 
 def pattern_translate(pattern):
     """
