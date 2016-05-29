@@ -30,6 +30,7 @@ class TimeTable:
 
 
 def update_table(file, user):
+    delete_table(user=user)
     for (period, row) in enumerate(_csv_parser(file)):
         for (day, subject) in enumerate(row):
             if not subject == '':
