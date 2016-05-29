@@ -2,7 +2,7 @@ import csv
 from io import TextIOWrapper
 
 from table.cfg import Config as Cfg
-from table.models import Subject
+from table.models import Subject, Attendance
 
 
 class TimeTable:
@@ -34,8 +34,10 @@ def update_table(file, user):
         for (day, subject) in enumerate(row):
             if not subject == '':
                 Subject(name=subject, period=period, day=Subject.DAY_OF_WEEK[day][0], user=user).save()
-                # TODO すでにアップロードしたあとに上書きすると、前の時間割とマージされてしまう
 
+def delete_table(user):
+    Attendance.objects.filter(subject__user=user).delete()
+    Subject.objects.filter(user=user).delete()
 
 def _csv_parser(requested_file):
     reader = csv.reader(TextIOWrapper(requested_file, encoding='shift-jis'))
