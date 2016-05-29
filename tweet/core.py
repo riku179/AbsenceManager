@@ -63,7 +63,7 @@ def main():
             except Exception as err:
                 log.error("Unknown error occurred: {e}".format(e=err))
             else:
-                reply_attendance.delay(user_id=msg['user']['id'], attendances=attendances, api_ctrl=api_ctrl)
+                reply_attendance.delay(user_id=msg['user']['id'], attendances=attendances)
 
 def pattern_translate(pattern):
     """
