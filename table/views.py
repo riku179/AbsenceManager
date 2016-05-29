@@ -23,7 +23,6 @@ def index(request):
         userprofile = UserProfileForm(request.POST, instance=userprofile_form)
         if userprofile.is_valid():
             userprofile.save()
-    #         TODO Twitterのアレコレを呼び出し
     return render_to_response('table/index.html', {
         'timetable': TimeTable(request.user),
         'uploadform': UploadTableForm(),
