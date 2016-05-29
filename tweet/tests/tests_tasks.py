@@ -4,9 +4,10 @@ from allauth.socialaccount.models import SocialAccount
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import date
 
+from tweet.core import pattern_translate
 from tweet.tasks import update_attendance
 from authentication.models import UserProfile
-from table.models import Attendance, Subject
+from table.models import Attendance, Subject, ATTENDANCE_STATUS
 
 
 class TestUpdateAttendance(TestCase):
@@ -40,10 +41,10 @@ class TestUpdateAttendance(TestCase):
         """
         self.prepare()
         self.prepare_subjects()
-        update_attendance(user_id=self.UID, attendances='oxlc', today=0)
-        self.assertEqual(Attendance.objects.get(subject=self.sub1, times=1).absence, 'attend')
-        self.assertEqual(Attendance.objects.get(subject=self.sub2, times=1).absence, 'absent')
-        self.assertEqual(Attendance.objects.get(subject=self.sub3, times=1).absence, 'late')
+        update_attendance(user_id=self.UID, attendances=pattern_translate(pattern='oxlc'), today=0)
+        self.assertEqual(Attendance.objects.get(subject=self.sub1, times=1).absence, ATTENDANCE_STATUS[0][0])
+        self.assertEqual(Attendance.objects.get(subject=self.sub2, times=1).absence, ATTENDANCE_STATUS[1][0])
+        self.assertEqual(Attendance.objects.get(subject=self.sub3, times=1).absence, ATTENDANCE_STATUS[2][0])
         with self.assertRaises(ObjectDoesNotExist):
             var = Attendance.objects.get(subject=self.sub4, times=1).absence
 
@@ -51,7 +52,8 @@ class TestUpdateAttendance(TestCase):
     def test_ng_user_ok_pattern(self):
         self.prepare()
         self.prepare_subjects()
-        update_attendance(user_id=1919, attendances='oxlc', today=0)
+        with self.assertRaises(ObjectDoesNotExist):
+            update_attendance(user_id=1919, attendances=pattern_translate(pattern='oxlc'), today=0)
         with self.assertRaises(ObjectDoesNotExist):
             var = Attendance.objects.get(subject=self.sub1, times=1).absence
 
@@ -59,14 +61,16 @@ class TestUpdateAttendance(TestCase):
     def test_ok_user_ng_pattern(self):
         self.prepare()
         self.prepare_subjects()
-        update_attendance(user_id=self.UID, attendances='loxxo', today=0)
+        with self.assertRaises(AttributeError):
+            update_attendance(user_id=self.UID, attendances=pattern_translate(pattern='loxxo'), today=0)
         with self.assertRaises(ObjectDoesNotExist):
             var = Attendance.objects.get(subject=self.sub1, times=1).absence
 
     def test_ng_user_ng_pattern(self):
         self.prepare()
         self.prepare_subjects()
-        update_attendance(user_id=1919, attendances='loxxo', today=0)
+        with self.assertRaises(ObjectDoesNotExist):
+            update_attendance(user_id=1919, attendances=pattern_translate(pattern='loxxo'), today=0)
         with self.assertRaises(ObjectDoesNotExist):
             var = Attendance.objects.get(subject=self.sub1, times=1).absence
 

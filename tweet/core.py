@@ -6,7 +6,7 @@ from datetime import date
 from twitter import *
 from allauth.socialaccount.models import SocialToken
 from django.core.exceptions import ObjectDoesNotExist
-from tweet import tasks
+from tweet.tasks import update_attendance, reply_attendance
 from table.models import ATTENDANCE_STATUS
 
 log = logging.getLogger(__name__)
@@ -50,20 +50,20 @@ def main():
         if 'in_reply_to_user_id' in msg and msg['in_reply_to_user_id'] == bot_id and matched_pattern:
             attendances = pattern_translate(matched_pattern)
             try:
-                tasks.update_attendance. delay(
+                update_attendance.delay(
                     user_id=msg['user']['id'],
                     attendances=attendances,
                     today=date.today().weekday(),
-                    api_ctrl=rest_api
-                )
+                    )
             except AttributeError:
                 log.error('user:{user_id} failed update attendance. Option is disabled or pattern is too long.'
-                          .format(user_id=msg['user']['id']))
+                      .format(user_id=msg['user']['id']))
+            except ObjectDoesNotExist:
+                log.error('user:{user_id} does not exist in DB.')
             except Exception as err:
                 log.error("Unknown error occurred: {e}".format(e=err))
             else:
-                tasks.reply_attendance.delay(user_id=msg['user']['id'], attendances=attendances, api_ctrl=rest_api)
-
+                reply_attendance.delay(user_id=msg['user']['id'], attendances=attendances, api_ctrl=api_ctrl)
 
 def pattern_translate(pattern):
     """
@@ -71,18 +71,18 @@ def pattern_translate(pattern):
     :param pattern: pattern strings ex) loxoou
     :return: list of attendances
     """
-    attendance = []
+    attendances = []
     for c in pattern:
         if c == 'o':
-            attendance.append(ATTENDANCE_STATUS[0])
+            attendances.append(ATTENDANCE_STATUS[0])
         elif c == 'x':
-            attendance.append(ATTENDANCE_STATUS[1])
+            attendances.append(ATTENDANCE_STATUS[1])
         elif c == 'l':
-            attendance.append(ATTENDANCE_STATUS[2])
+            attendances.append(ATTENDANCE_STATUS[2])
         elif c == 'u':
-            attendance.append(ATTENDANCE_STATUS[3])
+            attendances.append(ATTENDANCE_STATUS[3])
         elif c == 'c':
-            attendance.append(ATTENDANCE_STATUS[4])
+            attendances.append(ATTENDANCE_STATUS[4])
 
     return attendances
 

@@ -47,13 +47,13 @@ def update_attendance(user_id, attendances, today):
     else:
         for (a, subject) in zip(attendances, subjects):
             if a == ATTENDANCE_STATUS[0]:  # 出席
-                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=ATTENDANCE_STATUS[0]).save()
+                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=ATTENDANCE_STATUS[0][0]).save()
             elif a == ATTENDANCE_STATUS[1]:  # 欠席
-                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=ATTENDANCE_STATUS[1]).save()
+                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=ATTENDANCE_STATUS[1][0]).save()
             elif a == ATTENDANCE_STATUS[2]:  # 遅刻
-                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=ATTENDANCE_STATUS[2]).save()
+                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=ATTENDANCE_STATUS[2][0]).save()
             elif a == ATTENDANCE_STATUS[3]:  # 不明
-                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=ATTENDANCE_STATUS[3]).save()
+                Attendance(subject=subject, times=subject.sum_of_classes() + 1, absence=ATTENDANCE_STATUS[3][0]).save()
             elif a == ATTENDANCE_STATUS[4]:  # 休講
                 pass
 
@@ -73,7 +73,7 @@ def get_user_and_profile(user_id):
         target_user = SocialAccount.objects.get(uid=user_id)
         target_user_profile = UserProfile.objects.get(user=target_user.user)
     except ObjectDoesNotExist:
-        log.error('user:{user_id} does not exist in DB.')
+        raise
     return target_user, target_user_profile
 
 
