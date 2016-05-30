@@ -1,4 +1,5 @@
-import sys, os, re, django, logging
+import sys, os, re, django
+from logging import getLogger
 sys.path.append('/home/user/PycharmProjects/AbsenceManagement')
 os.environ['DJANGO_SETTINGS_MODULE'] = 'AbsenseManagement.settings'
 django.setup()
@@ -6,10 +7,10 @@ from datetime import date
 from twitter import *
 from allauth.socialaccount.models import SocialToken
 from django.core.exceptions import ObjectDoesNotExist
-from tweet.tasks import update_attendance, reply_attendance
+from tweet.tasks import update_attendance, reply_attendance, followed_by_someone, removed_by_someone
 from table.models import ATTENDANCE_STATUS
 
-log = logging.getLogger(__name__)
+log = getLogger('django')
 
 CONSUMER_KEY = 'csVH8LFOWjz4oIuhseDwnrY24'
 CONSUMER_SECRET = 'Tx81hrPOGkAx1c8pyuIzPvTc8ZNFRL5nMbXGBjoeTmcnDMKS39'
@@ -17,7 +18,9 @@ CONSUMER_SECRET = 'Tx81hrPOGkAx1c8pyuIzPvTc8ZNFRL5nMbXGBjoeTmcnDMKS39'
 
 def main():
     bot = SocialToken.objects.get(account__user=6)
+    log.info('{}:{}'.format(bot.token, bot.token_secret))
     auth = OAuth(token=bot.token, token_secret=bot.token_secret, consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET)
+
     rest_api = Twitter(auth=auth)
     streaming_api = TwitterStream(auth=auth, domain="userstream.twitter.com")
 
@@ -28,26 +31,28 @@ def main():
     pattern = re.compile(r'^@' + bot_screen_name + r'\s(all|[oxluc]{1,7})$')
 
     for msg in streaming_api.user():
-        print(msg)
+        log.info(msg)
         if 'friends' in msg:  # 接続が確立された時最初に1度のみ受け取る
-            log.warn('Connection established! user: ' + bot_screen_name)
+            log.info('Connection established! user: ' + bot_screen_name)
 
         if 'event' in msg:
-            if msg['event'] == 'follow' and msg['target'] == bot_id:  # フォローされた
+            if msg['event'] == 'follow' and msg['target']['id'] == bot_id:  # フォローされた
+                log.info('{} followed bot!'.format(msg['source']['id']))
                 try:
-                    tasks.followed_by_someone.delay(user_id=msg['source'])
+                    followed_by_someone.delay(user_id=msg['source']['id'])
                 except Exception as err:
                     log.error('[Error]', err)
 
-            if msg['event'] == 'unfollow' and msg['target'] == bot_id:  # リムーブされた
+            if msg['event'] == 'unfollow' and msg['target']['id'] == bot_id:  # リムーブされた
+                log.info('{} removed bot!'.format(msg['source']['id']))
                 try:
-                    tasks.removed_by_someone.delay(user_id=msg['source'])
+                    removed_by_someone.delay(user_id=msg['source'])
                 except Exception as err:
                     log.error("Unknown error occurred: {e}".format(e=err))
 
-        matched_pattern = pattern.match(msg['text']).group(1)
-        if 'in_reply_to_user_id' in msg and msg['in_reply_to_user_id'] == bot_id and matched_pattern:
-            attendances = pattern_translate(matched_pattern)
+        if 'in_reply_to_user_id' in msg and msg['in_reply_to_user_id'] == bot_id and pattern.match(msg['text']).group(1):
+            log.info('{} send attendance stats to bot!'.format(msg['user']['id']))
+            attendances = pattern_translate(pattern.match(msg['text']).group(1))
             try:
                 update_attendance.delay(
                     user_id=msg['user']['id'],

@@ -1,4 +1,4 @@
-import logging
+from logging import getLogger
 from celery import shared_task
 from twitter import *
 from allauth.socialaccount.models import SocialAccount
@@ -8,34 +8,34 @@ from django.contrib.auth.models import User
 from authentication.models import UserProfile
 from table.models import Attendance, Subject, ATTENDANCE_STATUS
 
-log = logging.getLogger(__name__)
+log = getLogger('django')
 
 
 @shared_task
 def followed_by_someone(user_id):
     try:
-        source_user = SocialAccount.objects.get(uid=user_id)
-        source_user_profile = UserProfile.objects.get(user=source_user)
+        source_user, source_user_profile =  get_user_and_profile(user_id=user_id)
         source_user_profile.watch_tl = True
         source_user_profile.save()
-        log.warn('User: ' + user_id + ' followd')
+        log.info('User:{} followed'.format(user_id))
     except ObjectDoesNotExist:
-        log.warn('Unknown user followed me')
+        log.info('Unknown user followed me')
 
 
 @shared_task
 def removed_by_someone(user_id):
     try:
-        source_user = SocialAccount.objects.get(uid=user_id)
-        source_user_profile = UserProfile.objects.get(user=source_user)
+        source_user, source_user_profile =  get_user_and_profile(user_id=user_id)
         source_user_profile.watch_tl = False
         source_user_profile.save()
-        log.warn('User:' + user_id + ' removed')
+        log.info('User:{} removed'.format(user_id))
     except ObjectDoesNotExist:
-        log.warn('Unknown user removed me')
+        log.info('Unknown user removed me')
+
 
 @shared_task
 def update_attendance(user_id, attendances, today):
+    log.info('started update attendance task')
     target_user, target_user_profile = get_user_and_profile(user_id=user_id)
 
     subjects = Subject.objects.filter(user=target_user.user) \
@@ -70,19 +70,17 @@ def get_user_and_profile(user_id, getprofile=True):
     """
 
     :param user_id: twitter ID
-    :return: User object, UserProofile object
+    :return: User object, UserProfile object
     """
     try:
-        target_user = SocialAccount.objects.get(uid=user_id)
+        user = SocialAccount.objects.get(uid=user_id).user
         if getprofile:
-            target_user_profile = UserProfile.objects.get(user=target_user.user)
+            user_profile = UserProfile.objects.get(user=user)
+            return user, user_profile
+        else:
+            return user
     except ObjectDoesNotExist:
         raise
-
-    if getprofile:
-        return target_user, target_user_profile
-    else:
-        return target_user
 
 
 def get_tweet_context(user_id, attendances):
