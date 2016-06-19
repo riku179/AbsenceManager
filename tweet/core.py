@@ -1,4 +1,4 @@
-import sys, os, re, django
+import sys, os, re, django, argparse
 from logging import getLogger
 sys.path.append('/home/user/PycharmProjects/AbsenceManagement')
 os.environ['DJANGO_SETTINGS_MODULE'] = 'AbsenseManagement.settings'
@@ -10,13 +10,25 @@ from django.core.exceptions import ObjectDoesNotExist
 from tweet.tasks import update_attendance, reply_attendance, followed_by_someone, removed_by_someone
 from table.models import ATTENDANCE_STATUS
 
-log = getLogger('django')
-
+################ Keys ################
 CONSUMER_KEY = 'csVH8LFOWjz4oIuhseDwnrY24'
 CONSUMER_SECRET = 'Tx81hrPOGkAx1c8pyuIzPvTc8ZNFRL5nMbXGBjoeTmcnDMKS39'
+######################################
+
+if __name__ == '__main__':
+    if sys.argv[1:] == 0:
+        main()
+    elif sys.argv[1:] > 0:
+        parser = argparse.ArgumentParser(description='Tweet handler for AbsenceManagement')
+        parser.add_argument('--day', '-d', type=int, choices=[x for x in range(6)])
+        args = parser.parse_args()
+        main(debug=True, debug_day=args.day)
+    else:
+        pass
 
 
-def main():
+def main(debug=False, debug_day=0):
+    log = getLogger('django')
     bot = SocialToken.objects.get(account__user=6)
     log.info('{}:{}'.format(bot.token, bot.token_secret))
     auth = OAuth(token=bot.token, token_secret=bot.token_secret, consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET)
@@ -27,6 +39,8 @@ def main():
     bot_account_verify = rest_api.account.verify_credentials(skip_status='true')
     bot_screen_name = bot_account_verify['screen_name']
     bot_id = bot_account_verify['id']  #  アカウントの情報を取得する。skip_statusは最新のpostを引っ張ってくるのを無効化
+
+    today = date.today().weekday() if debug is True else debug_day
 
     pattern = re.compile(r'^@' + bot_screen_name + r'\s(all|[oxluc]{1,7})$')
 
@@ -57,7 +71,7 @@ def main():
                 update_attendance.delay(
                     user_id=msg['user']['id'],
                     attendances=attendances,
-                    today=date.today().weekday(),
+                    today=today
                     )
             except AttributeError:
                 log.error('user:{user_id} failed update attendance. Option is disabled or pattern is too long.'
@@ -67,7 +81,7 @@ def main():
             except Exception as err:
                 log.error("Unknown error occurred: {e}".format(e=err))
             else:
-                reply_attendance.delay(user_id=msg['user']['id'], attendances=attendances, keys=(CONSUMER_KEY, CONSUMER_SECRET))
+                reply_attendance.delay(user_id=msg['user']['id'], attendances=attendances, keys=(CONSUMER_KEY, CONSUMER_SECRET), day=today)
 
 def pattern_translate(pattern):
     """
@@ -87,9 +101,8 @@ def pattern_translate(pattern):
             attendances.append(ATTENDANCE_STATUS[3])
         elif c == 'c':
             attendances.append(ATTENDANCE_STATUS[4])
-
     return attendances
 
 
-if __name__ == '__main__':
-    main()
+
+
