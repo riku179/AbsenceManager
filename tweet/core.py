@@ -1,6 +1,6 @@
 import sys, os, re, django, argparse
 from logging import getLogger
-sys.path.append('/home/user/PycharmProjects/AbsenceManagement')
+sys.path.append(os.path.abspath('../../AbsenceManagement'))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'AbsenseManagement.settings'
 django.setup()
 from datetime import date
@@ -15,19 +15,8 @@ CONSUMER_KEY = 'csVH8LFOWjz4oIuhseDwnrY24'
 CONSUMER_SECRET = 'Tx81hrPOGkAx1c8pyuIzPvTc8ZNFRL5nMbXGBjoeTmcnDMKS39'
 ######################################
 
-if __name__ == '__main__':
-    if sys.argv[1:] == 0:
-        main()
-    elif sys.argv[1:] > 0:
-        parser = argparse.ArgumentParser(description='Tweet handler for AbsenceManagement')
-        parser.add_argument('--day', '-d', type=int, choices=[x for x in range(6)])
-        args = parser.parse_args()
-        main(debug=True, debug_day=args.day)
-    else:
-        pass
 
-
-def main(debug=False, debug_day=0):
+def main(debug_day):
     log = getLogger('django')
     bot = SocialToken.objects.get(account__user=6)
     log.info('{}:{}'.format(bot.token, bot.token_secret))
@@ -39,8 +28,7 @@ def main(debug=False, debug_day=0):
     bot_account_verify = rest_api.account.verify_credentials(skip_status='true')
     bot_screen_name = bot_account_verify['screen_name']
     bot_id = bot_account_verify['id']  #  アカウントの情報を取得する。skip_statusは最新のpostを引っ張ってくるのを無効化
-
-    today = date.today().weekday() if debug is True else debug_day
+    today = date.today().weekday() if not debug_day is None else debug_day
 
     pattern = re.compile(r'^@' + bot_screen_name + r'\s(all|[oxluc]{1,7})$')
 
@@ -104,5 +92,12 @@ def pattern_translate(pattern):
     return attendances
 
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Tweet handler for AbsenceManagement')
+    parser.add_argument('--day', '-d', type=int, choices=[x for x in range(6)])
+    args = parser.parse_args()
 
-
+    if args.day is not None:
+        main(debug_day=args.day)
+else:
+    pass
