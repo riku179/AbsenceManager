@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.forms.models import modelformset_factory
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import Http404
 
 from table.models import *
 from table.controller import *
@@ -51,6 +52,9 @@ def uploadtable(request):
 
 @login_required
 def show_detail(request, subject_id):
+    # その科目の所有ユーザーでないなら404
+    if Subject.objects.get(id=subject_id).user_id != request.user.id:
+        raise Http404("Subject does not exist")
     attendances = modelformset_factory(Attendance, extra=0, fields=('absence',))
     if request.method == 'POST':
         formset = attendances(request.POST)
