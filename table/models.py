@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Max
 from django.contrib.auth.models import User
 
 
@@ -52,6 +52,9 @@ class Subject(models.Model):
             .filter(attendance__absence='late') \
             .aggregate(count=Count('attendance'))['count']
 
+    def get_latest_attendance(self):
+        return Attendance.objects.filter(subject=self).aggregate(Max('times'))['times__max']
+
     def __str__(self):
         return self.name
 
@@ -68,6 +71,7 @@ class Attendance(models.Model):
     subject = models.ForeignKey(Subject, verbose_name='科目', related_name='attendance')
     times = models.IntegerField('授業回数')
     absence = models.CharField('出席状況', max_length=7, choices=ATTENDANCE_STATUS)
+    date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return str(self.subject.name) + "(第" + str(self.times) + "回)"

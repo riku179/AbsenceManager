@@ -1,23 +1,28 @@
-import sys, os, re, django, logging
-sys.path.append('/home/user/PycharmProjects/AbsenceManagement')
+import sys, os, re, django, argparse
+from logging import getLogger
+sys.path.append(os.path.abspath('../../AbsenceManagement'))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'AbsenseManagement.settings'
 django.setup()
-from datetime import date
+import datetime as dt
 from twitter import *
+import traceback
 from allauth.socialaccount.models import SocialToken
 from django.core.exceptions import ObjectDoesNotExist
-from tweet.tasks import update_attendance, reply_attendance
+from tweet.tasks import update_attendance, reply_attendance, followed_by_someone, removed_by_someone, InvalidPatternError
 from table.models import ATTENDANCE_STATUS
 
-log = logging.getLogger(__name__)
-
+################ Keys ################
 CONSUMER_KEY = 'csVH8LFOWjz4oIuhseDwnrY24'
 CONSUMER_SECRET = 'Tx81hrPOGkAx1c8pyuIzPvTc8ZNFRL5nMbXGBjoeTmcnDMKS39'
+######################################
 
 
-def main():
+def main(debug_day):
+    log = getLogger('django')
     bot = SocialToken.objects.get(account__user=6)
+    log.info('{}:{}'.format(bot.token, bot.token_secret))
     auth = OAuth(token=bot.token, token_secret=bot.token_secret, consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET)
+
     rest_api = Twitter(auth=auth)
     streaming_api = TwitterStream(auth=auth, domain="userstream.twitter.com")
 
@@ -28,41 +33,56 @@ def main():
     pattern = re.compile(r'^@' + bot_screen_name + r'\s(all|[oxluc]{1,7})$')
 
     for msg in streaming_api.user():
-        print(msg)
-        if 'friends' in msg:  # 接続が確立された時最初に1度のみ受け取る
-            log.warn('Connection established! user: ' + bot_screen_name)
-
         if 'event' in msg:
-            if msg['event'] == 'follow' and msg['target'] == bot_id:  # フォローされた
+            if msg['event'] == 'follow' and msg['target']['id'] == bot_id:  # フォローされた
+                log.info('{} followed bot!'.format(msg['source']['id']))
                 try:
-                    tasks.followed_by_someone.delay(user_id=msg['source'])
+                    followed_by_someone.delay(user_id=msg['source']['id'])
                 except Exception as err:
                     log.error('[Error]', err)
 
-            if msg['event'] == 'unfollow' and msg['target'] == bot_id:  # リムーブされた
+            if msg['event'] == 'unfollow' and msg['target']['id'] == bot_id:  # リムーブされた
+                log.info('{} removed bot!'.format(msg['source']['id']))
                 try:
-                    tasks.removed_by_someone.delay(user_id=msg['source'])
+                    removed_by_someone.delay(user_id=msg['source'])
                 except Exception as err:
                     log.error("Unknown error occurred: {e}".format(e=err))
 
-        matched_pattern = pattern.match(msg['text']).group(1)
-        if 'in_reply_to_user_id' in msg and msg['in_reply_to_user_id'] == bot_id and matched_pattern:
-            attendances = pattern_translate(matched_pattern)
+        if 'in_reply_to_user_id' in msg and msg['in_reply_to_user_id'] == bot_id and pattern.match(msg['text']).group(1):
+            log.info('{} send attendance stats to bot!'.format(msg['user']['id']))
+            today = check_date(debug_day)
+            attendances = pattern_translate(pattern.match(msg['text']).group(1))
             try:
-                update_attendance.delay(
+                update_attendance(
                     user_id=msg['user']['id'],
                     attendances=attendances,
-                    today=date.today().weekday(),
+                    today=today
                     )
-            except AttributeError:
-                log.error('user:{user_id} failed update attendance. Option is disabled or pattern is too long.'
-                      .format(user_id=msg['user']['id']))
+            except InvalidPatternError as e:
+                log.error('user:{} failed update attendance. Option is disabled or pattern is invalid.'
+                      .format(msg['user']['id']))
             except ObjectDoesNotExist:
-                log.error('user:{user_id} does not exist in DB.')
+                log.error('user:{} does not exist in DB.'.format(msg['user']['id']))
             except Exception as err:
-                log.error("Unknown error occurred: {e}".format(e=err))
+                log.error("Unknown error occurred: {}".format(traceback.format_exc()))
             else:
-                reply_attendance.delay(user_id=msg['user']['id'], attendances=attendances, keys=(CONSUMER_KEY, CONSUMER_SECRET))
+                log.info('Status updated.')
+                reply_attendance.delay(user_id=msg['user']['id'], attendances=attendances, keys=(CONSUMER_KEY, CONSUMER_SECRET), day=today)
+
+
+def check_date(debug_day):
+
+    # デバッグモードがオンの場合、その日付
+    if debug_day is not None:
+        return debug_day
+
+    # 受け取った日時が９時より前の場合、前日の曜日
+    if dt.datetime.now() <= dt.datetime.combine(dt.date.today(), dt.time(9, 0)):
+        return (dt.date.today() - dt.timedelta(days=1)).weekday()
+
+    # 今日の曜日
+    return dt.date.today().weekday()
+
 
 def pattern_translate(pattern):
     """
@@ -82,9 +102,15 @@ def pattern_translate(pattern):
             attendances.append(ATTENDANCE_STATUS[3])
         elif c == 'c':
             attendances.append(ATTENDANCE_STATUS[4])
-
     return attendances
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='Tweet handler for AbsenceManagement')
+    parser.add_argument('--day', '-d', type=int, choices=[x for x in range(6)])
+    args = parser.parse_args()
+
+    if args.day is not None:
+        main(debug_day=args.day)
+else:
+    pass
