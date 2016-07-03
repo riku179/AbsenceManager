@@ -3,11 +3,12 @@ from logging import getLogger
 sys.path.append(os.path.abspath('../../AbsenceManagement'))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'AbsenseManagement.settings'
 django.setup()
-from datetime import date
+import datetime as dt
 from twitter import *
+import traceback
 from allauth.socialaccount.models import SocialToken
 from django.core.exceptions import ObjectDoesNotExist
-from tweet.tasks import update_attendance, reply_attendance, followed_by_someone, removed_by_someone
+from tweet.tasks import update_attendance, reply_attendance, followed_by_someone, removed_by_someone, InvalidPatternError
 from table.models import ATTENDANCE_STATUS
 
 ################ Keys ################
@@ -28,15 +29,10 @@ def main(debug_day):
     bot_account_verify = rest_api.account.verify_credentials(skip_status='true')
     bot_screen_name = bot_account_verify['screen_name']
     bot_id = bot_account_verify['id']  #  アカウントの情報を取得する。skip_statusは最新のpostを引っ張ってくるのを無効化
-    today = date.today().weekday() if not debug_day is None else debug_day
 
     pattern = re.compile(r'^@' + bot_screen_name + r'\s(all|[oxluc]{1,7})$')
 
     for msg in streaming_api.user():
-        log.info(msg)
-        if 'friends' in msg:  # 接続が確立された時最初に1度のみ受け取る
-            log.info('Connection established! user: ' + bot_screen_name)
-
         if 'event' in msg:
             if msg['event'] == 'follow' and msg['target']['id'] == bot_id:  # フォローされた
                 log.info('{} followed bot!'.format(msg['source']['id']))
@@ -54,22 +50,39 @@ def main(debug_day):
 
         if 'in_reply_to_user_id' in msg and msg['in_reply_to_user_id'] == bot_id and pattern.match(msg['text']).group(1):
             log.info('{} send attendance stats to bot!'.format(msg['user']['id']))
+            today = check_date(debug_day)
             attendances = pattern_translate(pattern.match(msg['text']).group(1))
             try:
-                update_attendance.delay(
+                update_attendance(
                     user_id=msg['user']['id'],
                     attendances=attendances,
                     today=today
                     )
-            except AttributeError:
-                log.error('user:{user_id} failed update attendance. Option is disabled or pattern is too long.'
-                      .format(user_id=msg['user']['id']))
+            except InvalidPatternError as e:
+                log.error('user:{} failed update attendance. Option is disabled or pattern is invalid.'
+                      .format(msg['user']['id']))
             except ObjectDoesNotExist:
-                log.error('user:{user_id} does not exist in DB.')
+                log.error('user:{} does not exist in DB.'.format(msg['user']['id']))
             except Exception as err:
-                log.error("Unknown error occurred: {e}".format(e=err))
+                log.error("Unknown error occurred: {}".format(traceback.format_exc()))
             else:
+                log.info('Status updated.')
                 reply_attendance.delay(user_id=msg['user']['id'], attendances=attendances, keys=(CONSUMER_KEY, CONSUMER_SECRET), day=today)
+
+
+def check_date(debug_day):
+
+    # デバッグモードがオンの場合、その日付
+    if debug_day is not None:
+        return debug_day
+
+    # 受け取った日時が９時より前の場合、前日の曜日
+    if dt.datetime.now() <= dt.datetime.combine(dt.date.today(), dt.time(9, 0)):
+        return (dt.date.today() - dt.timedelta(days=1)).weekday()
+
+    # 今日の曜日
+    return dt.date.today().weekday()
+
 
 def pattern_translate(pattern):
     """

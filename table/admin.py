@@ -13,7 +13,7 @@ admin.site.register(Subject, SubjectAdmin)
 
 
 class AttendanceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'times', 'absence')
+    list_display = ('id', 'times', 'absence', 'date')
     list_display_links = ('id',)
 
 
