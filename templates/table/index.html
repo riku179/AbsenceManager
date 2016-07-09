@@ -1,40 +1,46 @@
 {% extends "base.html" %}
 {% load account %}
+{% load staticfiles %}
 
 {% block title %}管理画面{% endblock title %}
 
-{% block extrahead %}{% endblock extrahead %}
+{% block extrahead %}
+  <script type="text/javascript" src="{% static "table/script.js" %}"></script>
+  <link rel="stylesheet" href="http://fonts.googleapis.com/earlyaccess/notosansjp.css">
+  <link type="text/css" rel="stylesheet" href="{% static "table/style.css" %}">
+{% endblock extrahead %}
 
 {% block content %}
   <div class="container">
     <h2>出欠管理</h2>
     <p>You are logging in as : {% user_display user %}</p>
-    <input type="button" value="ログアウト" onclick="location.href='/accounts/logout'">
+    <input class="btn btn-warning" type="button" value="ログアウト" onclick="location.href='/accounts/logout'">
     <form enctype="multipart/form-data" method="POST" action="{% url 'table.views.index' %}" >{% csrf_token %}
       Twitter連携{{ userprofileform.watch_tl }}
       <input type="hidden" name="user" value="{{ loggingin_user.id }}">
       <input type="submit" value="反映">
     </form>
-    <table class="table" border="true">
+    <table id="schedule" class="table table-bordered table-responsive sample">
       <thead>
-      <tr>
-        <th>時限\曜日</th>
+      <tr class="active">
+        <th></th>
         {% for day in timetable.day_of_week %}
-          <th>{{ day }}</th>
+          <th class="col-lg-2">{{ day }}</th>
         {% endfor %}
       </tr>
       </thead>
       <tbody>
       {% for row in timetable.table %}
         <tr>
-          <td>{{ forloop.counter }}</td>
+          <td class="active">{{ forloop.counter }}</td>
           {% for data in row %}
             {% ifnotequal data "" %}
-              <td>
-                <p>{{ data.name }}</p>
-                <p>{{ data.sum_of_attend }} / {{ data.sum_of_classes }}</p>
-                <p>遅刻 : {{ data.sum_of_late }}</p>
-                <p><a href="{% url 'table.views.show_detail' data.id %}">detail</a></p>
+              <td class="cell" onclick="jumplink('{% url 'table.views.show_detail' data.id %}')">
+                <div>
+                  <p>{{ data.name }}</p>
+                  <p>{{ data.sum_of_attend }} / {{ data.sum_of_classes }}</p>
+                  <p>遅刻 : {{ data.sum_of_late }}</p>
+                </div>
               </td>
             {% else %}
               <td/>

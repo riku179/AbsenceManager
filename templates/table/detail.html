@@ -9,10 +9,10 @@
     {% ifequal subject.sum_of_classes 0 %}
       <h3>出席情報がありません</h3>
     {% else %}
-      <table border="true">
-        <tr>
+      <table class="table table-bordered table-responsive">
+        <tr class="active">
           {% for attendance in attendances %}
-            <th><p>第{{ attendance.times }}回</p></th>
+            <th class="col-lg-1"><p>第{{ attendance.times }}回</p></th>
           {% endfor %}
         </tr>
         <tr>
