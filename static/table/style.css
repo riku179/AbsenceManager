@@ -1,4 +1,50 @@
+body {
+  font-size: 16px;
+  font-family: Arial, sans-serif;
+}
+
+#header_back {
+  background: #AEFF89;
+  padding: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+#header {
+}
+
+#header_title {
+  font-size: 2em;
+  font-weight: bold;
+  color: #535353;
+}
+
+#username {
+  font-weight: bold;
+  float: right;
+  margin-top: 10px;
+  color: #535353;
+}
+
+#logout_link {
+  text-decoration: underline;
+  color: #535353;
+}
+
 .cell:hover {
-  background: #BDE8FF;
+  background: #D3FFBA;
+  cursor: pointer;
+}
+
+input#upload_btn {
+  color: black;
+  background: #AEFF89;
+  border-color: darkgray;
+  padding: 6px;
+  border-radius: 3px;
+}
+
+input#upload_btn:hover {
+  background: #8BD56B;
   cursor: pointer;
 }
