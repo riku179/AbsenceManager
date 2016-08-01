@@ -17,7 +17,7 @@ CONSUMER_SECRET = 'Tx81hrPOGkAx1c8pyuIzPvTc8ZNFRL5nMbXGBjoeTmcnDMKS39'
 ######################################
 
 
-def main(debug_day):
+def main(debug_day=None):
     log = getLogger('django')
     bot = SocialToken.objects.get(account__user=6)
     log.info('{}:{}'.format(bot.token, bot.token_secret))
@@ -112,5 +112,7 @@ if __name__ == '__main__':
 
     if args.day is not None:
         main(debug_day=args.day)
+    else:
+        main()
 else:
     pass

@@ -108,8 +108,8 @@ def is_already_updated(user_id, subjects):
         return False
 
     # 最新のAttendanceのタイムスタンプは前日AM9:00よりあとのもの(今日の出席情報というあつかい)か。その場合は上書き
-    if last_attendance.date > dt.datetime.combine(dt.date.today() - dt.timedelta(days=1) ,dt.time(9, 0)).replace(tzinfo=utc):
-        return True
+    # if last_attendance.date > dt.datetime.combine(dt.date.today() - dt.timedelta(days=1) ,dt.time(9, 0)).replace(tzinfo=utc):
+    #     return True
     else:
         return False
 

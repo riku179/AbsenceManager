@@ -35,7 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'bootstrapform',
+    'bootstrap3',
     'celery_config',
     'table',
     'authentication',
@@ -74,6 +74,9 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.request',
             ],
+            'builtins': [
+                'bootstrap3.templatetags.bootstrap3',
+            ]
         },
     },
 ]

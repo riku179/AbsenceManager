@@ -1,8 +1,27 @@
 {% extends "base.html" %}
+{% load staticfiles %}
+{% load account socialaccount %}
 
 {% block title %}ログイン{% endblock %}
 
+{% block login_status %}
+  {% get_providers as socialaccount_providers %}
+  {% for provider in socialaccount_providers %}
+    <a title="{{provider.name}}" class="socialaccount_provider {{provider.id}} login_or_out_status"
+       href="{% provider_login_url provider.id process="login" scope=scope auth_params=auth_params %}">ログイン</a>
+  {% endfor %}
+{% endblock %}
+
 {% block content %}
-  Twitterでログインしてね
-  {% include "account/twitter_auth_button.html" with process="login" %}
+
+  <div class="container">
+    {% get_providers as socialaccount_providers %}
+    {% for provider in socialaccount_providers %}
+      <a title="{{provider.name}}" class="socialaccount_provider {{provider.id}}"
+         href="{% provider_login_url provider.id process="login" scope=scope auth_params=auth_params %}">
+        <img src="{% static 'authenication/sign-in-with-twitter-gray.png' %}">
+      </a>
+      </div>
+    {% endfor %}
+
 {% endblock %}

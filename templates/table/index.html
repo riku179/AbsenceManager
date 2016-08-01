@@ -1,22 +1,13 @@
 {% extends "base.html" %}
-{% load account %}
 {% load staticfiles %}
 
 {% block title %}管理画面{% endblock title %}
 
 {% block extrahead %}
   <script type="text/javascript" src="{% static "table/script.js" %}"></script>
-  <link type="text/css" rel="stylesheet" href="{% static "table/style.css" %}">
 {% endblock extrahead %}
 
 {% block content %}
-  <div id="header_back">
-    <div id="header" class="container">
-      <span id="header_title" class="col-md-9" >出欠管理</span>
-      <span id="username" class="col-md-3">{% user_display user %} : <a id="logout_link" href="accounts/logout">ログアウト</a></span>
-    </div>
-  </div>
-
   <div class="container">
     <table id="schedule" class="table table-bordered table-responsive sample">
       <thead>
@@ -55,7 +46,7 @@
           時間割ファイル選択...
           <input type="file" id="file" name="file" style="display: none;">
         </label>
-        <input type="submit" id="upload_btn" class="btn btn-primary" value="アップロード">
+        <input type="submit" class="btn btn-primary btn-green" value="アップロード">
       </form>
     </div>
   </div>

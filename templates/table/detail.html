@@ -1,6 +1,12 @@
 {% extends "table/../base.html" %}
+{% load staticfiles %}
+{% load bootstrap3 %}
 
 {% block title %}{{ subject.name }}{% endblock %}
+
+{% block extrahead %}
+  <script type="text/javascript" src="{% static "table/detail.js" %}"></script>
+{% endblock extrahead %}
 
 {% block content %}
   <div class="container">
@@ -9,26 +15,22 @@
     {% ifequal subject.sum_of_classes 0 %}
       <h3>出席情報がありません</h3>
     {% else %}
-      <table class="table table-bordered table-responsive">
-        <tr class="active">
-          {% for attendance in attendances %}
-            <th class="col-lg-1"><p>第{{ attendance.times }}回</p></th>
-          {% endfor %}
-        </tr>
-        <tr>
-          <form method="POST" action="{% url 'table.views.show_detail' subject.id %}" id="absence">{% csrf_token %}
-            {{ attend_formset.management_form }}
-            {% for form in attend_formset %}
-              {{ form.id }}
-              <td>
-                {{ form.absence }}
+      <table class="table table-bordered">
+        <form method="POST" action="{% url 'table.views.show_detail' subject.id %}" id="absence">{% csrf_token %}
+          {{ attend_formset.management_form }}
+          {% for form in attend_formset %}
+            <tr>
+              <td class="col-md-1 active text-center">第{{ forloop.counter }}回</td>
+              <td class="col-md-11">
+                {{ form.id }}
+                {% bootstrap_field form.absence show_label=False %}
               </td>
-            {% endfor %}
-          </form>
-        </tr>
+            </tr>
+          {% endfor %}
+        </form>
       </table>
-    <input type="submit" value="更新" form="absence"/>
-    <input type="reset" value="リセット">
+      <input type="submit" value="更新" form="absence" class="btn btn-primary btn-green">
+      <input type="button" value="リセット" class="btn btn-default" id="reset">
     {% endifequal %}
   </div>
 {% endblock %}
