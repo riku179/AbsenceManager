@@ -11,12 +11,12 @@
 {% block content %}
   <div class="container">
     <h2>{{ subject.name }}</h2>
-    <a href="{% url 'table.views.index' %}">back</a>
+    <a href="{% url 'index' %}">back</a>
     {% ifequal subject.sum_of_classes 0 %}
       <h3>出席情報がありません</h3>
     {% else %}
       <table class="table table-bordered">
-        <form method="POST" action="{% url 'table.views.show_detail' subject.id %}" id="absence">{% csrf_token %}
+        <form method="POST" action="{% url 'detail' subject.id %}" id="absence">{% csrf_token %}
           {{ attend_formset.management_form }}
           {% for form in attend_formset %}
             <tr>

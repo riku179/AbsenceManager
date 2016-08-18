@@ -1,8 +1,9 @@
-from django.conf.urls import url, include, patterns
+from django.conf.urls import url, include
 from django.contrib import admin
+from . import views
 
-urlpatterns = patterns('table.views',
-                       url(r'^$', 'index'),
-                       url(r'detail/(?P<subject_id>\d+)', 'show_detail'),
-                       url(r'^upload$', 'uploadtable'),
-                       )
+urlpatterns = [
+    url(r'^$', views.index, name='index'),
+    url(r'detail/(?P<subject_id>\d+)', views.show_detail, name='detail'),
+    url(r'^upload$', views.uploadtable, name='upload'),
+]

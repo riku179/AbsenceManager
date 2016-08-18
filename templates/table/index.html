@@ -24,7 +24,7 @@
           <td class="active">{{ forloop.counter }}</td>
           {% for data in row %}
             {% ifnotequal data "" %}
-              <td class="cell" onclick=location.href="{% url 'table.views.show_detail' data.id %}">
+              <td class="cell" onclick=location.href="{% url 'detail' data.id %}">
                 <div>
                   <p>{{ data.name }}</p>
                   <p>{{ data.sum_of_attend }} / {{ data.sum_of_classes }}</p>
@@ -41,7 +41,7 @@
     </table>
     <div id="upload_file">
       {% block upload_status %}{% endblock %}
-      <form enctype="multipart/form-data" method="post" action="{% url 'table.views.uploadtable' %}">{% csrf_token %}
+      <form enctype="multipart/form-data" method="post" action="{% url 'upload' %}">{% csrf_token %}
         <label for="file" class="btn btn-default">
           時間割ファイル選択...
           <input type="file" id="file" name="file" style="display: none;">
