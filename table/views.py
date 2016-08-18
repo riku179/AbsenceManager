@@ -1,5 +1,5 @@
 import logging
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from django.http import HttpResponse, HttpResponseRedirect
 from django.forms.models import modelformset_factory
@@ -24,12 +24,12 @@ def index(request):
         userprofile = UserProfileForm(request.POST, instance=userprofile_form)
         if userprofile.is_valid():
             userprofile.save()
-    return render_to_response('table/index.html', {
+    return render(request, 'table/index.html', {
         'timetable': TimeTable(request.user),
         'uploadform': UploadTableForm(),
         'loggingin_user': request.user,
         'userprofileform': UserProfileForm(instance=userprofile_form)
-    }, context_instance=RequestContext(request))
+    })
 
 
 @login_required
@@ -46,8 +46,8 @@ def uploadtable(request):
                 update_table(file=request.FILES['file'].file, user=request.user)
             except UnicodeDecodeError:
                 contents['upload_error'] = 'UnicodeError'
-            return render_to_response('table/index_upload.html', contents, context_instance=RequestContext(request))
-    return render_to_response('table/index_upload.html', contents, context_instance=RequestContext(request))
+            return render(request, 'table/index_upload.html', contents)
+    return render(request, 'table/index_upload.html', contents)
 
 
 @login_required
@@ -63,8 +63,8 @@ def show_detail(request, subject_id):
     else:
         formset = attendances(queryset=Attendance.objects \
                               .filter(subject=subject_id).order_by('times'))
-    return render_to_response('table/detail.html', {
+    return render(request, 'table/detail.html', {
         'subject': Subject.objects.get(id=subject_id),
         'attendances': Attendance.objects.filter(subject=subject_id).order_by('times'),
         'attend_formset': formset,
-    }, context_instance=RequestContext(request))
+    })
