@@ -116,8 +116,8 @@ def is_already_updated(user_id, subjects):
         return False
 
     # 最新のAttendanceのタイムスタンプは前日AM9:00よりあとのもの(今日の出席情報というあつかい)か。その場合は上書き
-    # if last_attendance.date > dt.datetime.combine(dt.date.today() - dt.timedelta(days=1) ,dt.time(9, 0)).replace(tzinfo=utc):
-    #     return True
+    if last_attendance.date > dt.datetime.combine(dt.date.today() - dt.timedelta(days=1) ,dt.time(9, 0)).replace(tzinfo=utc):
+        return True
     else:
         return False
 
@@ -155,7 +155,7 @@ def get_tweet_context(user_id, attendances, day):
 
     context = ''
     for subject, attendance in zip(subjects, attendances):
-        line = "{period}限 {subject_name} : {attendance}\n"\
+        line = "{period+1}限 {subject_name} : {attendance}\n"\
             .format(period=subject.period+1, subject_name=subject.name, attendance=attendance[1])
         context += line
     return context
