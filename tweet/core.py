@@ -8,7 +8,7 @@ from twitter import *
 import traceback
 from allauth.socialaccount.models import SocialToken
 from django.core.exceptions import ObjectDoesNotExist
-from tweet.tasks import update_attendance, reply_attendance, followed_by_someone, removed_by_someone, InvalidPatternError
+from tweet.tasks import update_attendance, reply_attendance, InvalidPatternError
 from table.models import ATTENDANCE_STATUS
 
 ################ Keys ################
@@ -19,7 +19,7 @@ CONSUMER_SECRET = 'Tx81hrPOGkAx1c8pyuIzPvTc8ZNFRL5nMbXGBjoeTmcnDMKS39'
 
 def main(debug_day=None):
     log = getLogger('django')
-    bot = SocialToken.objects.get(account__user=6)
+    bot = SocialToken.objects.get(id=3)
     log.info('{}:{}'.format(bot.token, bot.token_secret))
     auth = OAuth(token=bot.token, token_secret=bot.token_secret, consumer_key=CONSUMER_KEY, consumer_secret=CONSUMER_SECRET)
 
@@ -33,20 +33,20 @@ def main(debug_day=None):
     pattern = re.compile(r'^@' + bot_screen_name + r'\s(all|[oxluc]{1,7})$')
 
     for msg in streaming_api.user():
-        if 'event' in msg:
-            if msg['event'] == 'follow' and msg['target']['id'] == bot_id:  # フォローされた
-                log.info('{} followed bot!'.format(msg['source']['id']))
-                try:
-                    followed_by_someone.delay(user_id=msg['source']['id'])
-                except Exception as err:
-                    log.error('[Error]', err)
-
-            if msg['event'] == 'unfollow' and msg['target']['id'] == bot_id:  # リムーブされた
-                log.info('{} removed bot!'.format(msg['source']['id']))
-                try:
-                    removed_by_someone.delay(user_id=msg['source'])
-                except Exception as err:
-                    log.error("Unknown error occurred: {e}".format(e=err))
+#        if 'event' in msg:
+#            if msg['event'] == 'follow' and msg['target']['id'] == bot_id:  # フォローされた
+#                log.info('{} followed bot!'.format(msg['source']['id']))
+#                try:
+#                    followed_by_someone.delay(user_id=msg['source']['id'])
+#                except Exception as err:
+#                    log.error('[Error]', err)
+#
+#            if msg['event'] == 'unfollow' and msg['target']['id'] == bot_id:  # リムーブされた
+#                log.info('{} removed bot!'.format(msg['source']['id']))
+#                try:
+#                    removed_by_someone.delay(user_id=msg['source'])
+#                except Exception as err:
+#                    log.error("Unknown error occurred: {e}".format(e=err))
 
         if 'in_reply_to_user_id' in msg and msg['in_reply_to_user_id'] == bot_id and pattern.match(msg['text']).group(1):
             log.info('{} send attendance stats to bot!'.format(msg['user']['id']))
@@ -111,8 +111,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.day is not None:
-        main(debug_day=args.day)
+         main(debug_day=args.day)
     else:
-        main()
+         main()
 else:
     pass

@@ -1,4 +1,13 @@
 db.sqlite3
 .idea/
+*.pyc
 /RSReferCsv.csv
 AbsenseManagement/__pycache__/
+AbsenseManagement/migrations/
+authentication/__pycache__/
+authentication/migrations/
+celery_config/__pycache__/
+table/__pycache__/
+table/migrations/
+tweet/__pycache__/
+tweet/migrations/__pycache__/

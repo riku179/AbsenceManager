@@ -22,9 +22,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'i*&n#j6j13)sz8l$s+c8mt+=spz#i6%u2ab1ripp@ndj7&8ha#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['riku179.dip.jp', '192.168.0.32']
+
+ADMINS = [
+	('admin', 'l19818128@gmail.com'),
+]
 
 # Application definition
 
@@ -88,8 +92,11 @@ WSGI_APPLICATION = 'AbsenseManagement.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'absence_manager',
+	'USER': 'django',
+	'PASSWORD': 'spammandegg',
+	'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
     }
 }
 

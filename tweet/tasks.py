@@ -6,6 +6,8 @@ from allauth.socialaccount.models import SocialAccount, SocialToken
 from django.utils.timezone import utc
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
+from django.db.utils import OperationalError
+from django.db import connection
 
 from authentication.models import UserProfile
 from table.models import Attendance, Subject, ATTENDANCE_STATUS
@@ -13,40 +15,45 @@ from table.models import Attendance, Subject, ATTENDANCE_STATUS
 log = getLogger('django')
 
 
-@shared_task
-def followed_by_someone(user_id):
-    try:
-        source_user, source_user_profile = get_user_and_profile(user_id=user_id)
-        source_user_profile.watch_tl = True
-        source_user_profile.save()
-        log.info('User:{} followed'.format(user_id))
-    except ObjectDoesNotExist:
-        log.info('Unknown user followed me')
-
-
-@shared_task
-def removed_by_someone(user_id):
-    try:
-        source_user, source_user_profile = get_user_and_profile(user_id=user_id)
-        source_user_profile.watch_tl = False
-        source_user_profile.save()
-        log.info('User:{} removed'.format(user_id))
-    except ObjectDoesNotExist:
-        log.info('Unknown user removed me')
+#@shared_task
+#def followed_by_someone(user_id):
+#    try:
+#        source_user, source_user_profile = get_user_and_profile(user_id=user_id)
+#        source_user_profile.watch_tl = True
+#        source_user_profile.save()
+#        log.info('User:{} followed'.format(user_id))
+#    except ObjectDoesNotExist:
+#        log.info('Unknown user followed me')
+#
+#
+#@shared_task
+#def removed_by_someone(user_id):
+#    try:
+#        source_user, source_user_profile = get_user_and_profile(user_id=user_id)
+#        source_user_profile.watch_tl = False
+#        source_user_profile.save()
+#        log.info('User:{} removed'.format(user_id))
+#    except ObjectDoesNotExist:
+#        log.info('Unknown user removed me')
 
 
 def update_attendance(user_id, attendances, today):
 
     log.info('started update attendance task')
 
-    target_user, target_user_profile = get_user_and_profile(user_id=user_id)
+    try:
+        target_user = get_user(user_id=user_id)
+    except OperationalError:
+        log.warn('OperationalError catched. Reset DB connection and retry it.')
+        connection.close()
+        target_user = get_user(user_id=user_id)
 
     # その日の
     subjects = Subject.objects.filter(user=target_user) \
         .filter(day=Subject.DAY_OF_WEEK[today][0]) \
         .order_by('period')
 
-    if not target_user_profile.watch_tl or len(attendances) != subjects.count():
+    if len(attendances) != subjects.count():
         raise InvalidPatternError
     elif is_already_updated(user_id, subjects):
         log.info('Today\'s Attendance is already exits. It\'s Overrided.')
@@ -105,6 +112,7 @@ def is_already_updated(user_id, subjects):
     try:
         last_attendance = Attendance.objects.get(subject=subjects[0], times=subjects[0].sum_of_classes())
     except ObjectDoesNotExist:
+        log.info('This is first Attendance')
         return False
 
     # 最新のAttendanceのタイムスタンプは前日AM9:00よりあとのもの(今日の出席情報というあつかい)か。その場合は上書き
@@ -125,7 +133,7 @@ def reply_attendance(user_id, attendances, keys, day):
     rest_api.statuses.update(status=get_tweet_context(user_id=user_id, attendances=attendances, day=day))
 
 
-def get_user_and_profile(user_id, getprofile=True):
+def get_user(user_id):
     """
 
     :param user_id: Twitter User ID
@@ -133,18 +141,14 @@ def get_user_and_profile(user_id, getprofile=True):
     :return:
     """
     try:
-        user = SocialAccount.objects.get(uid=user_id).user
-        if getprofile:
-            user_profile = UserProfile.objects.get(user=user)
-            return user, user_profile
-        else:
-            return user
+        return SocialAccount.objects.get(uid=user_id).user
     except ObjectDoesNotExist:
+        log.error('User does not exist')
         raise
 
 
 def get_tweet_context(user_id, attendances, day):
-    target_user, target_user_profile = get_user_and_profile(user_id=user_id)
+    target_user = get_user(user_id=user_id)
     subjects = Subject.objects.filter(user=target_user) \
         .filter(day=Subject.DAY_OF_WEEK[day][0]) \
         .order_by('period')
@@ -152,7 +156,7 @@ def get_tweet_context(user_id, attendances, day):
     context = ''
     for subject, attendance in zip(subjects, attendances):
         line = "{period}限 {subject_name} : {attendance}\n"\
-            .format(period=subject.period, subject_name=subject.name, attendance=attendance[1])
+            .format(period=subject.period+1, subject_name=subject.name, attendance=attendance[1])
         context += line
     return context
 
