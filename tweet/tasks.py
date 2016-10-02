@@ -49,9 +49,12 @@ def update_attendance(user_id, attendances, today):
         target_user = get_user(user_id=user_id)
 
     # その日の
-    subjects = Subject.objects.filter(user=target_user) \
-        .filter(day=Subject.DAY_OF_WEEK[today][0]) \
-        .order_by('period')
+    try:
+        subjects = Subject.objects.filter(user=target_user) \
+            .filter(day=Subject.DAY_OF_WEEK[today][0]) \
+            .order_by('period')
+    except IndexError:
+        log.info("Have a nice Sunday!")
 
     if len(attendances) != subjects.count():
         raise InvalidPatternError
