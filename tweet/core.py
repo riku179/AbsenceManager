@@ -1,4 +1,4 @@
-import sys, os, re, django, argparse
+import sys, os, re, django, argparse, threading
 from logging import getLogger
 sys.path.append(os.path.abspath('../../AbsenceManagement'))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'AbsenseManagement.settings'
@@ -67,7 +67,8 @@ def main(debug_day=None):
                 log.error("Unknown error occurred: {}".format(traceback.format_exc()))
             else:
                 log.info('Status updated.')
-                reply_attendance.delay(user_id=msg['user']['id'], attendances=attendances, keys=(CONSUMER_KEY, CONSUMER_SECRET), day=today)
+                th_reply_attendance = threading.Thread(target=reply_attendance, kwargs={user_id: msg['user']['id'], attendances: attendances, keys: (CONSUMER_KEY, CONSUMER_SECRET), day: today})
+                th_reply_attendance.start()
 
 
 def check_date(debug_day):

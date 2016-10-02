@@ -1,5 +1,5 @@
+import threading
 from logging import getLogger
-from celery import shared_task
 from twitter import *
 import datetime as dt
 from allauth.socialaccount.models import SocialAccount, SocialToken
@@ -57,11 +57,13 @@ def update_attendance(user_id, attendances, today):
         raise InvalidPatternError
     elif is_already_updated(user_id, subjects):
         log.info('Today\'s Attendance is already exits. It\'s Overrided.')
-        update_db_attendance.delay(user_id, attendances, subjects, override=True)
+        th_update_db_attendance_no_OR = threading.Thread(target=update_db_attendance, args=(user_id, attendances, subjects, True))
+        th_update_db_attendance_no_OR.start()
     else:
-        update_db_attendance.delay(user_id, attendances, subjects)
+        th_update_db_attendance = threading.Thread(target=update_db_attendance, args=(user_id, attendances, subjects))
+        th_update_db_attendance.start()
 
-@shared_task
+
 def update_db_attendance(user_id, attendances, subjects, override=False):
     """
     出席情報を上書き
@@ -122,7 +124,6 @@ def is_already_updated(user_id, subjects):
         return False
 
 
-@shared_task
 def reply_attendance(user_id, attendances, keys, day):
     target_user = SocialToken.objects.get(account__uid=user_id)
     auth = OAuth(token=target_user.token,
