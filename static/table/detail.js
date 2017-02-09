@@ -1,1 +1,1 @@
-document.getElementById('reset').addEventListener("click", location.reload(true));
+document.getElementById('reset').addEventListener("click", function () { location.reload(true) }, false);

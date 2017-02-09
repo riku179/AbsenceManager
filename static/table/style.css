@@ -58,3 +58,14 @@ body > .container {
 .btn-green:hover {
   background: #8BD56B;
 }
+
+.modal-header {
+  background: #AEFF89;
+  -webkit-border-radius: 7px 7px 0 0 / 7px 7px 0 0;
+  -moz-border-radius: 7px 7px 0 0 / 7px 7px 0 0;
+  border-radius: 7px 7px 0 0 / 7px 7px 0 0;
+}
+
+.modal-content {
+  border: 0;
+}

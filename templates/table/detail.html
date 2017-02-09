@@ -4,10 +4,6 @@
 
 {% block title %}{{ subject.name }}{% endblock %}
 
-{% block extrahead %}
-  <script type="text/javascript" src="{% static "table/detail.js" %}"></script>
-{% endblock extrahead %}
-
 {% block content %}
   <div class="container">
     <h2>{{ subject.name }}</h2>
@@ -33,4 +29,8 @@
       <input type="button" value="リセット" class="btn btn-default" id="reset">
     {% endifequal %}
   </div>
+{% endblock %}
+
+{% block tailbody %}
+  <script type="text/javascript" src="{% static "table/detail.js" %}"></script>
 {% endblock %}
